@@ -14,7 +14,7 @@ def sign_up():
         state = request.json['state']
         municipality = request.json['municipality']
         birthday = request.json['birthday']
-        user = User(name, email, usr_password, gender, state, municipality, birthday, 0) # Solo para crear usuarios
+        user = User(name, email, usr_password, gender, state, municipality, birthday, 0, 'user') # Solo para crear usuarios
         affected_row = UsersModel.add_user(user)
 
         if affected_row == 1:

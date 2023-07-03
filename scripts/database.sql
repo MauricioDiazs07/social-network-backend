@@ -31,4 +31,8 @@ INSERT INTO T_USER_DATA VALUES
 INSERT INTO T_USER_DATA VALUES 
 ('Mauricio', 'mauricio.diaz@brita.ai', 'b12345', 'M', 'XXXXX', 'XXXXX', '1997-05-22',0);
 
+INSERT INTO T_USER_DATA VALUES 
+('Brita', 'brita@brita.ai', 'brita', 'X', 'XXXXX', 'XXXXX', '1998-12-14',1);
 
+INSERT INTO T_USER_DATA VALUES 
+('Influex', 'influex@influex.com', 'influex', 'X', 'XXXXX', 'XXXXX', '1998-12-14',2);

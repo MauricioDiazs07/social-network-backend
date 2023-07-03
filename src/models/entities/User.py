@@ -1,6 +1,6 @@
 class User():
 
-    def __init__(self, full_name, email,usr_password, gender, state, municipality, birthday, role_id) -> None:
+    def __init__(self, full_name, email,usr_password, gender, state, municipality, birthday, role_id, level_id) -> None:
         self.full_name = full_name
         self.email = email
         self.usr_password = usr_password
@@ -9,6 +9,7 @@ class User():
         self.municipality = municipality
         self.birthday = birthday
         self.role_id = role_id
+        self.level_id = level_id
 
     def to_JSON(self):
         return {
@@ -20,4 +21,5 @@ class User():
             'municipality': self.municipality,
             'birthday': self.birthday,
             'role_id': self.role_id,
+            'level': self.level_id
         }

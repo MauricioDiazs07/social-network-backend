@@ -14,13 +14,15 @@ class Security():
             'iat': datetime.datetime.now(tz=self.tz),
             'exp': datetime.datetime.now(tz=self.tz) + datetime.timedelta(minutes=10),
             'email': authenticated_user.email,
-            'fullname': authenticated_user.full_name
+            'fullname': authenticated_user.full_name,
+            'role': authenticated_user.role_id,
+            'level': ['user','admin','master']
         }
 
         return jwt.encode(payload, self.secret_key, algorithm='HS256')
     
     @classmethod
-    def verify_token(self, headers):
+    def verify_user_token(self, headers):
         if 'Authorization' in headers.keys():
             authorization = headers['Authorization']
             encoded_token = authorization.split(" ")[1]
@@ -28,7 +30,49 @@ class Security():
             if (len(encoded_token) > 0):
                 try:
                     payload = jwt.decode(encoded_token, self.secret_key, algorithms=["HS256"])
-                    return True
+                    role = payload['role']
+                    level = payload['level']
+                    if role == 0 or level == 'user':
+                        return True
+                    return False
+                except (jwt.ExpiredSignatureError, jwt.InvalidSignatureError):
+                    return False
+
+        return False
+
+    @classmethod
+    def verify_admin_token(self, headers):
+        if 'Authorization' in headers.keys():
+            authorization = headers['Authorization']
+            encoded_token = authorization.split(" ")[1]
+
+            if (len(encoded_token) > 0):
+                try:
+                    payload = jwt.decode(encoded_token, self.secret_key, algorithms=["HS256"])
+                    role = payload['role']
+                    level = payload['level']
+                    if role == 1 or level == 'admin':
+                        return True
+                    return False
+                except (jwt.ExpiredSignatureError, jwt.InvalidSignatureError):
+                    return False
+
+        return False
+    
+    @classmethod
+    def verify_influex_token(self, headers):
+        if 'Authorization' in headers.keys():
+            authorization = headers['Authorization']
+            encoded_token = authorization.split(" ")[1]
+
+            if (len(encoded_token) > 0):
+                try:
+                    payload = jwt.decode(encoded_token, self.secret_key, algorithms=["HS256"])
+                    role = payload['role']
+                    level = payload['level']
+                    if role == 2 or level == 'master':
+                        return True
+                    return False
                 except (jwt.ExpiredSignatureError, jwt.InvalidSignatureError):
                     return False
 

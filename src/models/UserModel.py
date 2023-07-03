@@ -9,11 +9,11 @@ class UsersModel():
             conn = get_connection()
             users = []
             with conn.cursor() as cur:
-                cur.execute("SELECT full_name, email, usr_password, gender, current_state, municipality, birthday, role_id FROM T_USER_DATA ORDER BY full_name ASC")
+                cur.execute("SELECT full_name, email, usr_password, gender, current_state, municipality, birthday, role_id, level_id FROM T_USER_DATA ORDER BY full_name ASC")
                 resultset = cur.fetchall()
 
                 for row in resultset:
-                    user = User(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7])
+                    user = User(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8])
                     users.append(user.to_JSON())
 
             conn.close()
@@ -21,6 +21,20 @@ class UsersModel():
         except Exception as ex:
             raise Exception(ex)
     
+    @classmethod
+    def get_user(self, user):
+        try:
+            conn = get_connection()
+            with conn.cursor() as cur:
+                cur.execute(
+                    f""" SELECT full_name, email, usr_password, gender, current_state, municipality, birthday, role_id, level_id FROM T_USER_DATA WHERE email = '{user.email}'
+                    """)
+                row = cur.fetchone()
+                user = User(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7], row[8])
+            conn.close()
+            return user.to_JSON()
+        except Exception as ex:
+            raise Exception(ex)
 
     @classmethod
     def add_user(self, user):
@@ -47,11 +61,11 @@ class UsersModel():
             authenticated_user = None
             with conn.cursor() as cur:
                 cur.execute(
-                    """ Select full_name, email from T_USER_DATA where email = %s and usr_password = %s
+                    """ Select full_name, email, role_id, level_id  from T_USER_DATA where email = %s and usr_password = %s
                     """, (user.email , user.usr_password))
                 result = cur.fetchone()
                 if result != None:
-                    authenticated_user = User(result[0], result[1], None, None, None, None, None, None)
+                    authenticated_user = User(result[0], result[1], None, None, None, None, None, result[2], result[3])
                 conn.commit()
             conn.close()
             return authenticated_user
