@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from utils.Security import Security
+from src.utils.Security import Security
 
 main = Blueprint('access_blueprint', __name__)
 
