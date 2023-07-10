@@ -12,7 +12,6 @@ def page_not_fount(error):
     return "<h1> 404 <h1>", 404
 
 def create_app():
-    if __name__ == '__main__':
         app.config.from_object(config['development'])
 
         # Blueprints
@@ -23,3 +22,6 @@ def create_app():
         # Error handlers
         app.register_error_handler(404, page_not_fount)
         app.run()
+
+if __name__ == '__main__':
+      create_app()
