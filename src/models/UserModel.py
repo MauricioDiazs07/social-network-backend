@@ -1,4 +1,4 @@
-from database.db import get_connection
+from src.database.db import get_connection
 from .entities.User import User
 
 class UsersModel():
