@@ -1,4 +1,4 @@
-from database.db import get_connection
+from src.database.db import get_connection
 from .entities.auth.AuthUser import AuthUser
 
 SIGN_UP_QUERY = """INSERT INTO "T_USER" ("EMAIL","PASSWORD", "NAME", "GENDER", "STATE","MUNICIPALITY", "COLONY", "STREET", "INT_NUMBER", "EXT_NUMBER", "BIRTHDATE", "CURP", "IDENTIFICATION_PHOTO") VALUES (%s, %s,%s, %s, %s,%s, %s, %s, %s,%s,%s,%s,%s)"""

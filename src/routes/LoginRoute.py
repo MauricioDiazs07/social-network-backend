@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from src.models.entities.User import User
+from src.models.entities.user.User import User
 from src.models.UserModel import UsersModel
 from src.utils.Security import Security
 

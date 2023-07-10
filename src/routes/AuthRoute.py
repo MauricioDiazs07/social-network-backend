@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
-from models.entities.auth import Login, SignUp
-from models.AuthModel import AuthModel
-from utils.Security import Security
+from src.models.entities.auth import Login, SignUp
+from src.models.AuthModel import AuthModel
+from src.utils.Security import Security
 
 main = Blueprint('auth_blueprint', __name__)
 
