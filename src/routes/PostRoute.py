@@ -28,7 +28,7 @@ def createPost():
         
         if output:
             return jsonify({
-            {'Error': 'Success upload'}
+            {'Message': 'Success upload'}
         })
 
         else:
