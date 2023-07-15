@@ -3,7 +3,8 @@ from decouple import config
 from werkzeug.utils import secure_filename
 
 s3 = boto3.client(
-    "s3",
+    service_name=config('SERVICE_NAME'),
+    region_name=config('REGION_NAME'),
     aws_access_key_id=config('AWS_ACCESS_KEY'),
     aws_secret_access_key=config('AWS_SECRET_ACCESS_KEY')
 )
