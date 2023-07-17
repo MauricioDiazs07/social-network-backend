@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request
+import hashlib
 from src.models.entities.auth import Login, SignUp
 from src.models.AuthModel import AuthModel
 from src.utils.Security import Security
@@ -34,8 +35,10 @@ def sign_up():
         ext_number = request.json['ext_number']
         birthday = request.json['birthday']
         curp = request.json['curp']
-        identification_photo = request.json['identification_photo']
-        signup = SignUp(email,password,name,gender,state,municipality,colony,street,int_number,ext_number,birthday,curp,identification_photo)
+        identification_photo = request.json['identification_photo'] # Cambiar por tipo de dato FILE
+        profile_id = hashlib.shake_256(email.encode('utf-8')).hexdigest(10)
+
+        signup = SignUp(profile_id,email,password,name,gender,state,municipality,colony,street,int_number,ext_number,birthday,curp,identification_photo)
 
         affected_row = AuthModel.signup(signup)
 

@@ -1,7 +1,7 @@
 class SignUp():
 
-    def __init__(self,email,password,name,gender,state,municipality,colony,street,int_number,ext_number,birthdate,curp,identification_photo):
-        print("inicio")
+    def __init__(self,profile_id,email,password,name,gender,state,municipality,colony,street,int_number,ext_number,birthdate,curp,identification_photo):
+        self.id = profile_id;
         self.email = email
         self.password = password
         self.name = name
@@ -15,10 +15,10 @@ class SignUp():
         self.birthdate = birthdate
         self.curp = curp
         self.identification_photo = identification_photo
-        print("fin")
 
     def to_JSON(self):
         return {
+            'id': self.id,
             'email': self.email,
             'password': self.password,
             'name': self.name,
