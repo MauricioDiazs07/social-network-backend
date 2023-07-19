@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request
+from src.utils.modeloINE import ModeloINE
 
 main = Blueprint('ai_blueprint', __name__)
 
@@ -23,18 +24,20 @@ def createPost():
         )
 
     if file and allowed_file(file.filename):
+        datos = ModeloINE(file.filename)
         return jsonify(
             {
-                'name': 'Jonathan Yair Vazquez',
-                'gender': 'M',
-                'state': 'CDMX',
+                'name': datos["nombre"],
+                'gender': datos["genero"],
+                'state': datos["estado"],
                 'municipality': 'Coyoacan',
                 'colony': 'Churubusco',
                 'street': 'Aguayo ',
                 'int_number': '12',
                 'ext_number': '0',
-                'birthday': '1998-12-14',
-                'curp': 'VAUJ981214HMCZRN00',
+                'birthday': datos["fechaDeNacimiento"],
+                'curp': datos["curp"],
+                # datos["domicilio"] no es usado
             }
         )
         
