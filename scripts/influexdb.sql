@@ -49,7 +49,9 @@ CREATE TABLE "T_PROFILE" (
 -------------------------------------------------------------------------------
  */
 
-/*  */
+ /* Falta foto de perfil */
+
+/* INE */
 CREATE TABLE "T_USER_DATA" (
     "ID" BIGSERIAL PRIMARY KEY,
     "PROFILE_ID" VARCHAR(255) NOT NULL,
@@ -71,6 +73,12 @@ CREATE TABLE "T_USER_DATA" (
         REFERENCES "T_PROFILE"("ID")
 );
 
+CREATE TABLE "T_USER_INTEREST" (
+    "ID" BIGSERIAL PRIMARY KEY,
+    CONSTRAINT "ROLE" 
+        FOREIGN KEY ("ROLE_ID")
+        REFERENCES "T_CATALOGUE_ROLE"("ID")
+)
 
 /* 
 -------------------------------------------------------------------------------
@@ -105,7 +113,7 @@ CREATE TABLE "T_MASTER" (
  */
 
 
- CREATE TABLE "T_SHARE_POST" (
+ CREATE TABLE "T_SHARE" (
     "ID" BIGSERIAL PRIMARY KEY,
     "PROFILE_ID" INT NOT NULL,
     "DESCRIPTION" VARCHAR(255) NOT NULL,
@@ -115,6 +123,13 @@ CREATE TABLE "T_MASTER" (
         REFERENCES "T_PROFILE"("ID")
  )
 
+
+/* 
+-------------------------------------------------------------------------------
+    MULTIMEDIA: 
+    Tablas que guardan los datos de las insteracciones
+-------------------------------------------------------------------------------
+ */
 
 
  CREATE TABLE "T_MULTIMEDIA" (
@@ -152,7 +167,9 @@ CREATE TABLE "T_MASTER" (
         REFERENCES "T_PROFILE"("ID"),
  )
 
+/* Llave primaria */
  CREATE TABLE "T_INTERACTION_LIKE" (
+    "ID" BIGSERIAL PRIMARY KEY,
     "PROFILE_ID" INT NOT NULL,
     "INTERACTION_ID" INT NOT NULL,
     "INTERACTION_TYPE" VARCHAR(255) NOT NULL,

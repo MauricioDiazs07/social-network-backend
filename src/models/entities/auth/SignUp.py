@@ -1,11 +1,12 @@
 class SignUp():
 
-    def __init__(self,profile_id,email,password,name,gender,state,municipality,colony,street,int_number,ext_number,birthdate,curp,identification_photo):
+    def __init__(self,profile_id,email,password,name,gender,country,state,municipality,colony,street,int_number,ext_number,birthdate,curp,identification_photo):
         self.id = profile_id;
         self.email = email
         self.password = password
         self.name = name
         self.gender = gender
+        self.country = country
         self.state = state
         self.municipality = municipality
         self.colony = colony
@@ -23,6 +24,7 @@ class SignUp():
             'password': self.password,
             'name': self.name,
             'gender': self.gender,
+            'country': self.country,
             'state': self.state,
             'municipality': self.municipality,
             'colony': self.colony,

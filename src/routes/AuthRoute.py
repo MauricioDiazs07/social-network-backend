@@ -27,6 +27,7 @@ def sign_up():
         password = request.json['password']
         name = request.json['name']
         gender = request.json['gender']
+        country = request.json['country']
         state = request.json['state']
         municipality = request.json['municipality']
         colony = request.json['colony']
@@ -35,10 +36,9 @@ def sign_up():
         ext_number = request.json['ext_number']
         birthday = request.json['birthday']
         curp = request.json['curp']
-        identification_photo = request.json['identification_photo'] # Cambiar por tipo de dato FILE
+        identification_photo = request.json['identification_photo']
         profile_id = hashlib.shake_256(email.encode('utf-8')).hexdigest(10)
-
-        signup = SignUp(profile_id,email,password,name,gender,state,municipality,colony,street,int_number,ext_number,birthday,curp,identification_photo)
+        signup = SignUp(profile_id,email,password,name,gender,country,state,municipality,colony,street,int_number,ext_number,birthday,curp,identification_photo)
 
         affected_row = AuthModel.signup(signup)
 
