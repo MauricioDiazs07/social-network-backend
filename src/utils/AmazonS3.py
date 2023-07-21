@@ -1,6 +1,7 @@
-import boto3, botocore
+import boto3
 from decouple import config
 from werkzeug.utils import secure_filename
+import uuid
 
 s3 = boto3.client(
     service_name=config('SERVICE_NAME'),
@@ -10,13 +11,13 @@ s3 = boto3.client(
 )
 
 
-def upload_file_to_s3(file, acl="public-read"):
+def upload_file_to_s3(file, new_name, acl="public-read"):
     filename = secure_filename(file.filename)
     try:
         s3.upload_fileobj(
             file,
             config('AWS_BUCKET_NAME'),
-            file.filename,
+            new_name,
             ExtraArgs={
                 "ACL": acl,
                 "ContentType": file.content_type

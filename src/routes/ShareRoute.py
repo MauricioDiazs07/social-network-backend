@@ -1,0 +1,48 @@
+from flask import Blueprint, jsonify, request
+from src.utils.AmazonS3 import upload_file_to_s3
+from src.models.ShareModel import ShareModel
+from src.models.entities.share import Share, Multimedia
+import uuid
+from decouple import config
+
+main = Blueprint('share_blueprint', __name__)
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+def allowed_file(filename):
+    return '.' in filename and \
+        filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+@main.route('/upload', methods = ['POST'])
+def createTest():
+
+    try:
+        if len(request.files) == 0 and request.form['description'] == '':
+            return jsonify(
+                {'Error': 'Data not found'}
+            )
+
+        profile_id = request.form['profile_id']
+        description = request.form['description']
+        share_type = request.form['share_type']
+        share = Share(profile_id, share_type, description)
+        share_id = ShareModel.create_share(share)
+
+        if len(request.files) > 0:
+            for fileitem in request.files:
+                file = request.files[fileitem]
+                if file and allowed_file(file.filename):
+                    new_name = uuid.uuid4().hex + '.' + file.filename.rsplit('.',1)[1].lower()
+                    upload_file_to_s3(file,new_name)
+                    url = 'https://{}.s3.{}.amazonaws.com/{}'.format(config('AWS_BUCKET_NAME'),config('REGION_NAME'),new_name)
+                    multimedia = Multimedia(share_id, share_type, url, file.filename.rsplit('.',1)[1].lower())
+                    ShareModel.create_multimedia(multimedia)
+
+        return jsonify({'message': share_id})
+    
+    except Exception as ex:
+        return jsonify({'message': str(ex)}), 500
+
+
+    
