@@ -27,7 +27,6 @@ def add_interest():
 @main.route('/update', methods = ['POST'])
 def update_interest():
     try:
-        
         profile_id = request.json['profile_id']
         interest_list = request.json['interest']
         interest = Interest(profile_id, interest_list)
