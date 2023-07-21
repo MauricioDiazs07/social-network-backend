@@ -15,7 +15,7 @@ def allowed_file(filename):
 
 
 @main.route('/upload', methods = ['POST'])
-def createTest():
+def create_share():
 
     try:
         if len(request.files) == 0 and request.form['description'] == '':
@@ -45,4 +45,14 @@ def createTest():
         return jsonify({'message': str(ex)}), 500
 
 
-    
+@main.route('/get/<int:share_id>/', methods = ['GET'])
+def get_share(share_id):
+    try:
+        shares = ShareModel.get_share(share_id)
+        multimedia = ShareModel.get_multimedia(share_id)
+        return jsonify({
+            "share": shares,
+            "multimedia": multimedia
+        })
+    except Exception as ex:
+        return jsonify({'message': str(ex)}), 500
