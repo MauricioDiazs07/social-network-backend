@@ -3,6 +3,7 @@ from .entities.catalogue.Catalogue import Catalogue
 
 ALL_INTERESTS_QUERY = """ SELECT * FROM "T_CATALOGUE_INTEREST" """
 ADD_INTEREST = """ INSERT INTO "T_USER_INTEREST" ("PROFILE_ID","INTEREST_ID") VALUES """
+CLEAN_INTEREST = """ DELETE FROM "T_USER_INTEREST" WHERE "PROFILE_ID" = '{}' """
 
 class InterestModel():
 
@@ -31,6 +32,19 @@ class InterestModel():
             with conn.cursor() as cur:
                 argument_string = ",".join("('%s', '%s')" % (x, y) for (x, y) in interests)
                 cur.execute(ADD_INTEREST + argument_string )
+                affected_row = cur.rowcount
+                conn.commit()
+            conn.close()
+            return affected_row
+        except Exception as ex:
+            raise Exception(ex)
+    
+    @classmethod
+    def clean_interests(self, interest):
+        try:
+            conn = get_connection()
+            with conn.cursor() as cur:
+                cur.execute(CLEAN_INTEREST.format(interest.profile_id))
                 affected_row = cur.rowcount
                 conn.commit()
             conn.close()
