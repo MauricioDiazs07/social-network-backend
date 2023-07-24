@@ -28,7 +28,7 @@ def create_share():
         share_type = request.form['share_type']
         share = Share(profile_id, share_type, description)
         share_id = ShareModel.create_share(share)
-
+        print(request.files)
         if len(request.files) > 0:
             for fileitem in request.files:
                 file = request.files[fileitem]
@@ -53,6 +53,17 @@ def get_share(share_id):
         return jsonify({
             "share": shares,
             "multimedia": multimedia
+        })
+    except Exception as ex:
+        return jsonify({'message': str(ex)}), 500
+    
+
+@main.route('/list', methods = ['GET'])
+def list_share():
+    try:
+       
+        return jsonify({
+            "message": "Prueba"
         })
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500
