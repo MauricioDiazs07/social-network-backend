@@ -16,7 +16,6 @@ def login():
     if (authenticated_user != None):
         encoded_token = Security.generate_token(authenticated_user)
         return jsonify({
-            'success': True, 
             'profile_id': authenticated_user.id,
             'email': authenticated_user.email,
             'role_id': authenticated_user.role_id,
