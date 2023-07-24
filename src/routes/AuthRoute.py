@@ -33,8 +33,9 @@ def sign_up():
         birthday = request.json['birthday']
         curp = request.json['curp']
         identification_photo = request.json['identification_photo']
+        phone = request.json['phone']
         profile_id = hashlib.shake_256(email.encode('utf-8')).hexdigest(16)
-        signup = SignUp(profile_id,email,password,name,gender,state,municipality,address,birthday,curp,identification_photo)
+        signup = SignUp(profile_id,email,password,name,gender,state,municipality,address,birthday,curp,identification_photo,phone)
 
         affected_row = AuthModel.signup(signup)
 
