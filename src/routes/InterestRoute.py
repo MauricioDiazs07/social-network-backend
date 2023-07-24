@@ -29,15 +29,25 @@ def update_interest():
     try:
         profile_id = request.json['profile_id']
         interest_list = request.json['interest']
-        interest = Interest(profile_id, interest_list)
-        InterestModel.clean_interests(interest)
+        InterestModel.clean_interests(profile_id)
 
         values = []
         if len(interest_list) > 0:
-            for interest in interest_list:
-                values.append((profile_id, interest))
+            for interest_value in interest_list:
+                values.append((profile_id, interest_value))
             InterestModel.add_interests(values)
 
         return jsonify({'success': values})
+    except Exception as ex:
+        return jsonify({'message': str(ex)}), 500
+    
+
+
+@main.route('/<profile_id>', methods = ['GET'])
+def get_interest(profile_id):
+    try:
+        print(profile_id)
+        interest_profile = InterestModel.get_interests(profile_id)
+        return interest_profile
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500

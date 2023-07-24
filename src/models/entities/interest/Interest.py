@@ -1,11 +1,11 @@
 class Interest():
     
-    def __init__(self, profile_id, list_interests) -> None:
-        self.profile_id = profile_id
-        self.list_interests = list_interests
+    def __init__(self, interest_id, description) -> None:
+        self.interest_id = interest_id
+        self.description = description
 
     def to_JSON(self):
         return {
-            'profile_id': self.profile_id,
-            'list_interests': self.list_interests
+            'interest_id': self.interest_id,
+            'description': self.description
         }
