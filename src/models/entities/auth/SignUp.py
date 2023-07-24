@@ -1,7 +1,22 @@
-class SignUp():
+from typing import Dict
 
-    def __init__(self,email,password,name,gender,state,municipality,colony,street,int_number,ext_number,birthdate,curp,identification_photo):
-        print("inicio")
+class SignUp():
+    def __init__(
+            self,
+            email: str,
+            password: str,
+            name: str,
+            gender: str,
+            state: str,
+            municipality: str,
+            colony: str,
+            street: str,
+            int_number: str,
+            ext_number: str,
+            birthdate: str,
+            curp: str,
+            identification_photo: str
+    ) -> None:
         self.email = email
         self.password = password
         self.name = name
@@ -15,9 +30,8 @@ class SignUp():
         self.birthdate = birthdate
         self.curp = curp
         self.identification_photo = identification_photo
-        print("fin")
 
-    def to_JSON(self):
+    def to_JSON(self) -> Dict[str, str]:
         return {
             'email': self.email,
             'password': self.password,
