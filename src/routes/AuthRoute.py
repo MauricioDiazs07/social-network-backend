@@ -36,7 +36,6 @@ def sign_up():
         curp = request.json['curp']
         identification_photo = request.json['identification_photo']
         signup = SignUp(email,password,name,gender,state,municipality,colony,street,int_number,ext_number,birthday,curp,identification_photo)
-
         affected_row = AuthModel.signup(signup)
 
         if affected_row == 1:

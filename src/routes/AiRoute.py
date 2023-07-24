@@ -1,9 +1,11 @@
 from flask import Blueprint, jsonify, request
-from src.utils.modeloINE import ModeloINE
+from src.utils.ModeloINE import ModeloIne
+import base64
 
 main = Blueprint('ai_blueprint', __name__)
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+RESOURCES_PATH = 'src/resources/img/'
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -11,33 +13,44 @@ def allowed_file(filename):
 
 @main.route('/ine', methods = ['POST'])
 def createPost():
-    if 'INE' not in request.files:
+    if 'INE' not in request.json:
         return jsonify(
             {'Error': 'No INE key in request.files'}
         )
         
-    file = request.files['INE']
+    file = request.json['INE']
+    data = file['data']
+    path = RESOURCES_PATH + 'INE.png'
 
-    if file.filename == '':
+    # data_as_dictionary = json.loads(data)
+    img = base64.b64decode(data)
+
+    # imgdata = base64.b64decode(data)
+    with open(path, 'wb') as f:
+            f.write(img)
+
+    # img.save(path)
+
+    if file['path'] == '':
         return jsonify(
             {'Error': 'No selected file'}
         )
 
-    if file and allowed_file(file.filename):
-        datos = ModeloINE(file.filename)
+    if file and allowed_file(file['path']):
+        datos = ModeloIne(path, RESOURCES_PATH)
+
+        if not datos:
+            return jsonify({'ok': False})
+
         return jsonify(
             {
                 'name': datos["nombre"],
                 'gender': datos["genero"],
                 'state': datos["estado"],
                 'municipality': 'Coyoacan',
-                'colony': 'Churubusco',
-                'street': 'Aguayo ',
-                'int_number': '12',
-                'ext_number': '0',
+                'address': datos["domicilio"],
                 'birthday': datos["fechaDeNacimiento"],
-                'curp': datos["curp"],
-                # datos["domicilio"] no es usado
+                'curp': datos["curp"]
             }
         )
         
