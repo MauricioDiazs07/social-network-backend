@@ -1,13 +1,15 @@
 class AuthUser():
 
-    def __init__(self, email, name, user_type):
+    def __init__(self, profile_id, email, name, role_id):
+        self.id = profile_id
         self.email = email
         self.name = name
-        self.user_type = user_type
+        self.role_id = role_id
 
     def to_JSON(self):
         return {
+            'id': self.id,
             'email': self.email,
             'name': self.name,
-            'user_type': self.user_type
+            'role_id': self.role_id
         }

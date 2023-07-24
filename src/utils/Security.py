@@ -13,9 +13,10 @@ class Security():
         payload = {
             'iat': datetime.datetime.now(tz=self.tz),
             'exp': datetime.datetime.now(tz=self.tz) + datetime.timedelta(minutes=10),
+            'id': authenticated_user.id,
             'email': authenticated_user.email,
             'name': authenticated_user.name,
-            'user_type': authenticated_user.user_type,
+            'role_id': authenticated_user.role_id,
         }
 
         return jwt.encode(payload, self.secret_key, algorithm='HS256')
@@ -29,8 +30,8 @@ class Security():
             if (len(encoded_token) > 0):
                 try:
                     payload = jwt.decode(encoded_token, self.secret_key, algorithms=["HS256"])
-                    user_type = payload['user_type']
-                    if user_type == 'USER':
+                    user_type = payload['role_id']
+                    if user_type == 1:
                         return True
                     return False
                 except (jwt.ExpiredSignatureError, jwt.InvalidSignatureError):

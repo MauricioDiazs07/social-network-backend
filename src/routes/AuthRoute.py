@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request
+import hashlib
 from src.models.entities.auth import Login, SignUp
 from src.models.AuthModel import AuthModel
 from src.utils.Security import Security
@@ -14,7 +15,12 @@ def login():
     authenticated_user = AuthModel.login(login)
     if (authenticated_user != None):
         encoded_token = Security.generate_token(authenticated_user)
-        return jsonify({'success': True, 'token': encoded_token})
+        return jsonify({
+            'profile_id': authenticated_user.id,
+            'email': authenticated_user.email,
+            'role_id': authenticated_user.role_id,
+            'token': encoded_token
+            })
     else:
         response = jsonify({'message': 'No registrado'})
         return response, 401
@@ -28,14 +34,14 @@ def sign_up():
         gender = request.json['gender']
         state = request.json['state']
         municipality = request.json['municipality']
-        colony = request.json['colony']
-        street = request.json['street']
-        int_number = request.json['int_number']
-        ext_number = request.json['ext_number']
+        address = request.json['address']
         birthday = request.json['birthday']
         curp = request.json['curp']
         identification_photo = request.json['identification_photo']
-        signup = SignUp(email,password,name,gender,state,municipality,colony,street,int_number,ext_number,birthday,curp,identification_photo)
+        phone = request.json['phone']
+        profile_id = hashlib.shake_256(email.encode('utf-8')).hexdigest(16)
+        signup = SignUp(profile_id,email,password,name,gender,state,municipality,address,birthday,curp,identification_photo,phone)
+
         affected_row = AuthModel.signup(signup)
 
         if affected_row == 1:

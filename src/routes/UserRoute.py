@@ -8,7 +8,7 @@ main = Blueprint('user_blueprint', __name__)
 @main.route('/')
 def get_users():
 
-    has_access = Security.verify_influex_token(request.headers)
+    has_access = Security.verify_user_token(request.headers)
 
     if has_access:
         try:
