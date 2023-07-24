@@ -15,7 +15,13 @@ def login():
     authenticated_user = AuthModel.login(login)
     if (authenticated_user != None):
         encoded_token = Security.generate_token(authenticated_user)
-        return jsonify({'success': True, 'token': encoded_token})
+        return jsonify({
+            'success': True, 
+            'profile_id': authenticated_user.id,
+            'email': authenticated_user.email,
+            'role_id': authenticated_user.role_id,
+            'token': encoded_token
+            })
     else:
         response = jsonify({'message': 'No registrado'})
         return response, 401

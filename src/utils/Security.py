@@ -30,8 +30,8 @@ class Security():
             if (len(encoded_token) > 0):
                 try:
                     payload = jwt.decode(encoded_token, self.secret_key, algorithms=["HS256"])
-                    user_type = payload['user_type']
-                    if user_type == 'USER':
+                    user_type = payload['role_id']
+                    if user_type == 1:
                         return True
                     return False
                 except (jwt.ExpiredSignatureError, jwt.InvalidSignatureError):
