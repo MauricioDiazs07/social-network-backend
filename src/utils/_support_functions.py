@@ -24,12 +24,12 @@ def format_date_to_front(date: str) -> str:
     return f'{day}-{month}-{year}'
 
 def format_date_to_DB(date: str) -> str:
-    print(date)
-    day = date[:2]
-    month = date[3:8]
+    print(date.split("-"))
+    day = date.split("-")[0]
+    month = date.split("-")[1]
     month = months.index(month.lower()) + 1
     month = month if month >= 10 else f'0{month}'
-    year = date[-4:]
+    year = date.split("-")[2]
     return f'{year}-{month}-{day}'
 
 def getGender(gender_: str) -> str:
