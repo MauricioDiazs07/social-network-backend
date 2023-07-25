@@ -1,3 +1,5 @@
+from src.models.entities.states.States import STATES, MUNICIPALITIES
+
 months = [
   'enero',
   'febrero',
@@ -22,9 +24,22 @@ def format_date_to_front(date: str) -> str:
     return f'{day}-{month}-{year}'
 
 def format_date_to_DB(date: str) -> str:
+    print(date)
     day = date[:2]
-    month = date[3:7]
+    month = date[3:8]
     month = months.index(month.lower()) + 1
     month = month if month >= 10 else f'0{month}'
     year = date[-4:]
     return f'{year}-{month}-{day}'
+
+def getGender(gender_: str) -> str:
+    if gender_ == 'female':
+        return 'M'
+    
+    return 'H'
+
+def getState(state_: str) -> str:
+    return STATES[state_]
+
+def getMunicipality(state_:str, mun_: str) -> str:
+    return MUNICIPALITIES[state_][mun_]

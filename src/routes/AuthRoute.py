@@ -1,8 +1,13 @@
 from flask import Blueprint, jsonify, request
-import hashlib
 from src.models.entities.auth import Login, SignUp
 from src.models.AuthModel import AuthModel
 from src.utils.Security import Security
+from src.utils._support_functions import \
+                                    format_date_to_DB, \
+                                    getGender, \
+                                    getState, \
+                                    getMunicipality
+import hashlib
 
 main = Blueprint('auth_blueprint', __name__)
 
@@ -32,14 +37,21 @@ def sign_up():
         password = request.json['password']
         name = request.json['name']
         gender = request.json['gender']
-        state = request.json['state']
-        municipality = request.json['municipality']
+        state_id = request.json['state']
+        municipality_id = request.json['municipality']
         address = request.json['address']
         birthday = request.json['birthday']
         curp = request.json['curp']
         identification_photo = request.json['identification_photo']
         phone = request.json['phone']
         profile_id = hashlib.shake_256(email.encode('utf-8')).hexdigest(16)
+
+        # process information for database
+        birthday = format_date_to_DB(birthday)
+        gender = getGender(gender)
+        state = getState(state_id)
+        municipality = getMunicipality(state_id, municipality_id)
+
         signup = SignUp(profile_id,email,password,name,gender,state,municipality,address,birthday,curp,identification_photo,phone)
 
         affected_row = AuthModel.signup(signup)
