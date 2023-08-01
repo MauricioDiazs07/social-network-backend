@@ -26,7 +26,7 @@ def create_share():
         profile_id = request.form['profile_id']
         description = request.form['description']
         share_type = request.form['share_type']
-        share = Share(profile_id, share_type, description)
+        share = Share(None, profile_id, share_type, description)
         share_id = ShareModel.create_share(share)
         print(request.files)
         if len(request.files) > 0:
@@ -61,9 +61,24 @@ def get_share(share_id):
 @main.route('/list', methods = ['GET'])
 def list_share():
     try:
-       
+        shares_all = []
+        shares = ShareModel.get_all()
+        for share in shares:
+            multimedia = ShareModel.get_multimedia(share["share_id"])
+            shares_all.append({
+                "share": share,
+                "multimedia": multimedia
+            })
+        return shares_all
+    except Exception as ex:
+        return jsonify({'message': str(ex)}), 500
+    
+@main.route('/delete/<int:share_id>/', methods = ['DELETE'])
+def delete_share(share_id):
+    try:
+        ShareModel.delete_share(share_id)
         return jsonify({
-            "message": "Prueba"
+            "message": "OK"
         })
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500
