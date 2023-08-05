@@ -1,6 +1,5 @@
 from flask import Blueprint, jsonify, request
 from src.models.InterestModel import InterestModel
-from src.models.entities.interest import Interest
 
 main = Blueprint('interest_blueprint', __name__)
 

@@ -1,15 +1,22 @@
 class Share():
 
-    def __init__(self, share_id, profile_id, share_type, description) -> None:
+    def __init__(self, share_id, name, profile_id, profile_photo, description,share_type,creation_date) -> None:
         self.share_id = share_id
+        self.name = name
         self.profile_id = profile_id
-        self.share_type = share_type
+        self.profile_photo = profile_photo
         self.description = description
+        self.share_type = share_type
+        self.creation_date = creation_date
+        
 
     def to_JSON(self):
         return {
-            'share_id': self.share_id,
-            'profile_id': self.profile_id,
-            'share_type': self.share_type,
-            'description': self.description
+            'id': self.share_id,
+            'name': self.name,
+            'profileId': self.profile_id,
+            'profileImage': self.profile_photo,
+            'text': self.description,
+            'shareType': self.share_type,
+            'creationDate': self.creation_date
         }
