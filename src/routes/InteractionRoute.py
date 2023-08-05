@@ -48,8 +48,16 @@ def like():
         return jsonify({'message': str(ex)}), 500
 
 
-@main.route('/dislike', methods = ['POST'])
+@main.route('/dislike', methods = ['DELETE'])
 def dislike():
-    return jsonify({
-        "message": "Like borrado"
-    })
+    try:
+        profile_id = request.json['profile_id']
+        share_id = request.json['share_id']
+        share_type = request.json['share_type']
+        like = Like(profile_id,share_id,share_type)
+        InteractionModel.dislike(like)
+        return jsonify({
+            "message": "DISLIKE"
+        })
+    except Exception as ex:
+        return jsonify({'message': str(ex)}), 500

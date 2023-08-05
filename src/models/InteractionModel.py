@@ -10,9 +10,9 @@ DELETE_COMMENT = """  """
 
 ADD_LIKE = """ INSERT INTO "T_INTERACTION_LIKE" ("PROFILE_ID","SHARE_ID","SHARE_TYPE") VALUES (%s,%s,%s) """
 COUNT_LIKE = """ SELECT COUNT(*) AS "LIKES" FROM "T_INTERACTION_LIKE" WHERE "SHARE_ID" = %s """
-GET_LIKES = """ SELECT "T_INTERACTION_LIKE"."PROFILE_ID", "NAME", "SHARE_ID", "SHARE_TYPE" FROM "T_INTERACTION_LIKE" INNER JOIN "T_PROFILE" ON "T_INTERACTION_LIKE"."PROFILE_ID" = "T_PROFILE"."ID" WHERE "SHARE_ID" = %s  """
-GET_ALL_LIKES = """ SELECT "T_INTERACTION_LIKE"."PROFILE_ID", "NAME", "SHARE_ID", "SHARE_TYPE" FROM "T_INTERACTION_LIKE" INNER JOIN "T_PROFILE" ON "T_INTERACTION_LIKE"."PROFILE_ID" = "T_PROFILE"."ID" """
-REMOVE_LIKE = """  """
+GET_LIKES = """ SELECT "T_INTERACTION_LIKE"."PROFILE_ID", "NAME", "PROFILE_PHOTO", "SHARE_ID", "SHARE_TYPE" FROM "T_INTERACTION_LIKE" INNER JOIN "T_PROFILE" ON "T_INTERACTION_LIKE"."PROFILE_ID" = "T_PROFILE"."ID" WHERE "SHARE_ID" = %s  """
+GET_ALL_LIKES = """ SELECT "T_INTERACTION_LIKE"."PROFILE_ID", "NAME", "PROFILE_PHOTO", "SHARE_ID", "SHARE_TYPE" FROM "T_INTERACTION_LIKE" INNER JOIN "T_PROFILE" ON "T_INTERACTION_LIKE"."PROFILE_ID" = "T_PROFILE"."ID" """
+REMOVE_LIKE = """ DELETE FROM "T_INTERACTION_LIKE" WHERE "PROFILE_ID" = %s AND "SHARE_ID" = %s AND "SHARE_TYPE" = %s """
 
 
 class InteractionModel():
@@ -76,6 +76,19 @@ class InteractionModel():
             return affected_row
         except Exception as ex:
             raise Exception(ex)
+        
+    @classmethod
+    def dislike(self, like):
+        try:
+            conn = get_connection()
+            with conn.cursor() as cur:
+                cur.execute(REMOVE_LIKE, (like.profile_id, like.share_id,like.share_type))
+                affected_row = cur.rowcount
+                conn.commit()
+            conn.close()
+            return affected_row
+        except Exception as ex:
+            raise Exception(ex)
     
     @classmethod
     def count_likes(self, id):
@@ -98,7 +111,7 @@ class InteractionModel():
                 cur.execute(GET_LIKES, (id,))
                 resultset = cur.fetchall()
                 for row in resultset:
-                    like = ReadLike(row[0],row[1],row[2],row[3]).to_JSON()
+                    like = ReadLike(row[0],row[1],row[2],row[3],row[4]).to_JSON()
                     like.pop('share_id')
                     like.pop('share_type')
                     likes.append(like)
@@ -116,7 +129,7 @@ class InteractionModel():
                 cur.execute(GET_ALL_LIKES)
                 resultset = cur.fetchall()
                 for row in resultset:
-                    like = ReadLike(row[0],row[1],row[2],row[3])
+                    like = ReadLike(row[0],row[1],row[2],row[3],row[4])
                     likes.append(like.to_JSON())
             conn.close()
             return likes
