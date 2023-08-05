@@ -10,7 +10,6 @@ class AuthModel():
     @classmethod
     def login(self, login):
         try:
-            print("------------------")
             conn = get_connection()
             authenticated_user = None
             with conn.cursor() as cur:

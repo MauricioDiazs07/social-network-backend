@@ -23,14 +23,18 @@ def create_comment():
 
 @main.route('/update', methods = ['POST'])
 def update_commet():
+    id = request.json['id']
+    text = request.json['comment']
+    InteractionModel.update_comment(id, text)
     return jsonify({
-        "message": "Comentario modificado"
+        "message": "OK"
     })
 
-@main.route('/delete', methods = ['DELETE'])
-def delete_commet():
+@main.route('/delete/<int:id>', methods = ['DELETE'])
+def delete_commet(id):
+    InteractionModel.delete_comment(id)
     return jsonify({
-        "message": "Comentario borrado"
+        "message": "OK"
     })
 
 @main.route('/like', methods = ['POST'])

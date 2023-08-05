@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from src.utils.AmazonS3 import upload_file_to_s3
+from src.utils.AmazonS3 import upload_file_to_s3, delete_file_from_s3
 from src.models.ShareModel import ShareModel
 from src.models.MultimediaModel import MultimediaModel
 from src.models.InteractionModel import InteractionModel
@@ -31,7 +31,6 @@ def create_share():
         share_type = request.form['share_type']
         share = CreateShare(profile_id, share_type, description)
         share_id = ShareModel.create_share(share)
-        print(request.files)
         if len(request.files) > 0:
             for fileitem in request.files:
                 file = request.files[fileitem]
@@ -47,15 +46,26 @@ def create_share():
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500
 
+@main.route('/update', methods = ['POST'])
+def update_share():
+    try:
+        share_id = request.json['share_id']
+        description = request.json['description']
+        print("-------------")
+        share_id = ShareModel.update_share(share_id,description)
+        return jsonify({'message': share_id})
+    except Exception as ex:
+        return jsonify({'message': str(ex)}), 500
 
 @main.route('/get/<int:share_id>', methods = ['GET'])
 def get_share(share_id):
     try:
         shares = ShareModel.get_share(share_id)
+        if shares == None:
+            return {"message": "Share not fount"}
         multimedia = MultimediaModel.get_multimedia(share_id)
         comment = InteractionModel.get_comment(share_id)
         likes = InteractionModel.get_likes(share_id)
-        print(likes)
         shares['multimedia'] = {"count": len(multimedia), "data": multimedia}
         shares['comments'] = {"count": len(comment), "data": comment}
         shares['likes'] = {"count": len(likes), "data": likes}
@@ -104,7 +114,13 @@ def list_share():
 def delete_share(share_id):
     try:
         ShareModel.delete_share(share_id)
+        multimedia = MultimediaModel.get_multimedia(share_id)
+        for archive in multimedia:
+            file = archive['archive_url'].split("/")[-1]
+            delete_file_from_s3(file)
         MultimediaModel.delete_multimedia(share_id)
+        InteractionModel.delete_all_comments(share_id)
+        InteractionModel.delete_all_likes(share_id)
         return jsonify({
             "message": "OK"
         })

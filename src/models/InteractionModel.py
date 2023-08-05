@@ -5,15 +5,16 @@ from src.models.entities.interaction.ReadLike import ReadLike;
 CREATE_COMMENT = """ INSERT INTO "T_INTERACTION_COMMENT" ("PROFILE_ID","SHARE_ID","SHARE_TYPE","TEXT") VALUES (%s,%s,%s,%s) """
 READ_ALL_COMMENTS = """ SELECT "T_INTERACTION_COMMENT"."ID","NAME","PROFILE_ID","T_PROFILE"."PROFILE_PHOTO","T_INTERACTION_COMMENT"."TEXT","SHARE_ID","SHARE_TYPE","T_INTERACTION_COMMENT"."CREATION_DATE"  FROM "T_INTERACTION_COMMENT"  INNER JOIN "T_PROFILE" ON "T_INTERACTION_COMMENT"."PROFILE_ID" = "T_PROFILE"."ID" ORDER BY "T_INTERACTION_COMMENT"."CREATION_DATE" ASC """;
 READ_COMMENT = """ SELECT "T_INTERACTION_COMMENT"."ID","NAME","PROFILE_ID","T_PROFILE"."PROFILE_PHOTO","T_INTERACTION_COMMENT"."TEXT","SHARE_ID","SHARE_TYPE","T_INTERACTION_COMMENT"."CREATION_DATE"  FROM "T_INTERACTION_COMMENT"  INNER JOIN "T_PROFILE" ON "T_INTERACTION_COMMENT"."PROFILE_ID" = "T_PROFILE"."ID" WHERE "SHARE_ID" = %s """
-UPDATE_COMMENT = """  """
-DELETE_COMMENT = """  """
+UPDATE_COMMENT = """ UPDATE "T_INTERACTION_COMMENT" SET "TEXT" = %s WHERE "ID" = %s """
+DELETE_COMMENT = """ DELETE FROM "T_INTERACTION_COMMENT" WHERE "ID" = %s """
+DELETE_ALL_COMMENTS = """ DELETE FROM "T_INTERACTION_COMMENT" WHERE "SHARE_ID" = %s """
 
 ADD_LIKE = """ INSERT INTO "T_INTERACTION_LIKE" ("PROFILE_ID","SHARE_ID","SHARE_TYPE") VALUES (%s,%s,%s) """
 COUNT_LIKE = """ SELECT COUNT(*) AS "LIKES" FROM "T_INTERACTION_LIKE" WHERE "SHARE_ID" = %s """
 GET_LIKES = """ SELECT "T_INTERACTION_LIKE"."PROFILE_ID", "NAME", "PROFILE_PHOTO", "SHARE_ID", "SHARE_TYPE" FROM "T_INTERACTION_LIKE" INNER JOIN "T_PROFILE" ON "T_INTERACTION_LIKE"."PROFILE_ID" = "T_PROFILE"."ID" WHERE "SHARE_ID" = %s  """
 GET_ALL_LIKES = """ SELECT "T_INTERACTION_LIKE"."PROFILE_ID", "NAME", "PROFILE_PHOTO", "SHARE_ID", "SHARE_TYPE" FROM "T_INTERACTION_LIKE" INNER JOIN "T_PROFILE" ON "T_INTERACTION_LIKE"."PROFILE_ID" = "T_PROFILE"."ID" """
 REMOVE_LIKE = """ DELETE FROM "T_INTERACTION_LIKE" WHERE "PROFILE_ID" = %s AND "SHARE_ID" = %s AND "SHARE_TYPE" = %s """
-
+DELETE_ALL_LIKES = """ DELETE FROM "T_INTERACTION_LIKE" WHERE "SHARE_ID" = %s """
 
 class InteractionModel():
 
@@ -23,6 +24,58 @@ class InteractionModel():
             conn = get_connection()
             with conn.cursor() as cur:
                 cur.execute(CREATE_COMMENT, (comment.profile_id, comment.share_id,comment.share_type,comment.text))
+                affected_row = cur.rowcount
+                conn.commit()
+            conn.close()
+            return affected_row
+        except Exception as ex:
+            raise Exception(ex)
+        
+    @classmethod
+    def update_comment(self,id,comment):
+        try:
+            conn = get_connection()
+            with conn.cursor() as cur:
+                cur.execute(UPDATE_COMMENT, (comment, id))
+                affected_row = cur.rowcount
+                conn.commit()
+            conn.close()
+            return affected_row
+        except Exception as ex:
+            raise Exception(ex)
+        
+    @classmethod
+    def delete_comment(self, id):
+        try:
+            conn = get_connection()
+            with conn.cursor() as cur:
+                cur.execute(DELETE_COMMENT, (id,))
+                affected_row = cur.rowcount
+                conn.commit()
+            conn.close()
+            return affected_row
+        except Exception as ex:
+            raise Exception(ex)
+        
+    @classmethod
+    def delete_all_comments(self, share_id):
+        try:
+            conn = get_connection()
+            with conn.cursor() as cur:
+                cur.execute(DELETE_ALL_COMMENTS, (share_id,))
+                affected_row = cur.rowcount
+                conn.commit()
+            conn.close()
+            return affected_row
+        except Exception as ex:
+            raise Exception(ex)
+    
+    @classmethod
+    def delete_all_likes(self, share_id):
+        try:
+            conn = get_connection()
+            with conn.cursor() as cur:
+                cur.execute(DELETE_ALL_LIKES, (share_id,))
                 affected_row = cur.rowcount
                 conn.commit()
             conn.close()

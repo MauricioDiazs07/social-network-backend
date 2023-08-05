@@ -150,10 +150,6 @@ CREATE TABLE "T_MULTIMEDIA" (
 -------------------------------------------------------------------------------
  */
 
-/* Las historias, reals y post tienen comentarios, por eso se pone */
-/* Pero eso quita la posibilidad de usar como llave foranea el ID de la historia, post, etc */
-/* El front se debe de encargar de mandar el valor correctamente */
-
 
  CREATE TABLE "T_INTERACTION_COMMENT" (
     "ID" BIGSERIAL PRIMARY KEY,
@@ -167,14 +163,13 @@ CREATE TABLE "T_MULTIMEDIA" (
         REFERENCES "T_PROFILE"("ID"),
  )
 
-/* Llave primaria */
  CREATE TABLE "T_INTERACTION_LIKE" (
-    "ID" BIGSERIAL PRIMARY KEY,
     "PROFILE_ID" VARCHAR(255) NOT NULL,
     "SHARE_ID" INT NOT NULL,
     "SHARE_TYPE" VARCHAR(255) NOT NULL,
     "CREATION_DATE" timestamp NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    PRIMARY KEY ("PROFILE_ID","SHARE_ID","SHARE_TYPE"),
     CONSTRAINT "PROFILE" 
         FOREIGN KEY ("PROFILE_ID")
         REFERENCES "T_PROFILE"("ID")
- )
+ );

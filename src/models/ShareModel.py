@@ -6,7 +6,7 @@ CREATE_SHARE = """ INSERT INTO "T_SHARE" ("PROFILE_ID", "SHARE_TYPE", "DESCRIPTI
 GET_ALL_SHARE = """ SELECT "T_SHARE"."ID","NAME","PROFILE_ID","T_PROFILE"."PROFILE_PHOTO","T_SHARE"."DESCRIPTION","SHARE_TYPE","T_SHARE"."CREATION_DATE" FROM "T_SHARE"  INNER JOIN "T_PROFILE" ON "T_SHARE"."PROFILE_ID" = "T_PROFILE"."ID" ORDER BY "T_SHARE"."CREATION_DATE" ASC """
 GET_SHARE = """ SELECT "T_SHARE"."ID","NAME","PROFILE_ID","T_PROFILE"."PROFILE_PHOTO","T_SHARE"."DESCRIPTION","SHARE_TYPE","T_SHARE"."CREATION_DATE" FROM "T_SHARE"  INNER JOIN "T_PROFILE" ON "T_SHARE"."PROFILE_ID" = "T_PROFILE"."ID" WHERE "T_SHARE"."ID" = %s """
 DELETE_SHARE = """ delete from "T_SHARE" where "ID" = %s """
-
+UPDATE_SHARE = """ UPDATE "T_SHARE" SET "DESCRIPTION" = %s WHERE "ID" = %s """
 
 class ShareModel():
 
@@ -22,6 +22,19 @@ class ShareModel():
             return post_id
         except Exception as ex:
             raise Exception(ex)
+    
+    @classmethod
+    def update_share(self, id, description):
+        try:
+            conn = get_connection()
+            with conn.cursor() as cur:
+                cur.execute(UPDATE_SHARE, (description, id))
+                affected_row = cur.rowcount
+                conn.commit()
+            conn.close()
+            return affected_row
+        except Exception as ex:
+            raise Exception(ex)
         
     @classmethod
     def get_share(self, id):
@@ -31,7 +44,7 @@ class ShareModel():
                 cur.execute(GET_SHARE, (id,))
                 result = cur.fetchone()
                 if result == None:
-                    return {"message": "Share not fount"}
+                    return None
                 share = Share(result[0],result[1],result[2], result[3],result[4],result[5],result[6])
             conn.close()
             return share.to_JSON()
