@@ -50,10 +50,8 @@ def createPost():
 
     if file and allowed_file(file['path']):
         datos = ModeloIne(path + file_name, path)
-        print(datos)
         if not datos:
             return jsonify({'ok': False})
-        print("---")
         return jsonify(datos)
         
     else:
