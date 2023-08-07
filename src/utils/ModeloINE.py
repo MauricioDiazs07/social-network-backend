@@ -99,7 +99,33 @@ def getState(
         print(ex)
         return "", ""
     
-def extractInformation() -> None:
+def readField(
+        path: str,
+        file_name: str
+) -> str:
+    """
+        read an specific field of the credential
+
+        ---------------------
+
+        Inputs:
+            path: path of the img resources
+            file_name: name of the file
+
+        Outputs:
+            str - 
+    """
+    text_ = reader2.readtext(path + file_name, detail = 0)[1:]
+    if (type(text_) == list):
+        text_ = " ".join(text_).upper()
+    return text_
+    
+def extractInformation(
+        width: str,
+        height: str,
+        path: str,
+        INE
+) -> str:
     """
         Crops the INE img and extracts the information by parts
 
@@ -115,52 +141,48 @@ def extractInformation() -> None:
             boolean - True if the lecture has information, otherwise, False
         
     """
-        # saveCropCredential(width*0.28, height*0.26, width*0.7, height*0.46, path, "INE-nombre.png", INE)
-        # nombre = reader2.readtext(path + "INE-nombre.png", detail = 0)[1:]
-        # nombre = " ".join(nombre).upper()
-        
-        # saveCropCredential(width*0.30, height*0.44, width*0.825, height*0.69, path, "INE-domicilio.png", INE)
-        # domicilio = reader2.readtext(path + "INE-domicilio.png", detail = 0)[1:]
-        # domicilio = " ".join(domicilio).upper()
+    saveCropCredential(width*0.28, height*0.26, width*0.7, height*0.46, path, "INE-nombre.png", INE)
+    nombre = readField(path, "INE-nombre.png")
+    
+    saveCropCredential(width*0.30, height*0.44, width*0.825, height*0.69, path, "INE-domicilio.png", INE)
+    domicilio = readField(path, "INE-domicilio.png")
 
-        # saveCropCredential(width*0.76, height*0.28, width*0.98, height*0.365, path, "INE-fechaDeNacimiento.png", INE)
-        # fechaDeNacimiento = reader2.readtext(path + "INE-fechaDeNacimiento.png", detail = 0)
-        # if len(fechaDeNacimiento) >= 1 and len(fechaDeNacimiento[-1]) >= 8:
-        #     fechaDeNacimiento = fechaDeNacimiento[-1] 
-        #     diaDeNacimiento = fechaDeNacimiento[0:2]
-        #     mesDeNacimiento =  fechaDeNacimiento[3:5] if (fechaDeNacimiento[2] == "/") else fechaDeNacimiento[2:4]
-        #     añoDeNacimiento = fechaDeNacimiento[-4:]
-        #     fechaDeNacimiento = f"{añoDeNacimiento}-{mesDeNacimiento}-{diaDeNacimiento}"
-        
-        # saveCropCredential(width*0.29, height*0.705, width*0.68, height*0.79, path, "INE-curp.png", INE)
-        # curp = reader2.readtext(path + "INE-curp.png", detail = 0)
+    saveCropCredential(width*0.76, height*0.28, width*0.98, height*0.365, path, "INE-fechaDeNacimiento.png", INE)
+    fechaDeNacimiento = reader2.readtext(path + "INE-fechaDeNacimiento.png", detail = 0)
+    if len(fechaDeNacimiento) >= 1 and len(fechaDeNacimiento[-1]) >= 8:
+        fechaDeNacimiento = fechaDeNacimiento[-1] 
+        diaDeNacimiento = fechaDeNacimiento[0:2]
+        mesDeNacimiento =  fechaDeNacimiento[3:5] if (fechaDeNacimiento[2] == "/") else fechaDeNacimiento[2:4]
+        añoDeNacimiento = fechaDeNacimiento[-4:]
+        fechaDeNacimiento = f"{añoDeNacimiento}-{mesDeNacimiento}-{diaDeNacimiento}"
+    
+    saveCropCredential(width*0.29, height*0.705, width*0.68, height*0.79, path, "INE-curp.png", INE)
+    curp = readField(path, "INE-curp.png")
 
-        # if (len(curp) >= 1):
-        #     for i, element in enumerate(curp): #primer caso checa por el siguiente elemento despues de curp
-        #         if element.upper() == "CURP" and len(curp) >= i+2:
-        #             curp = curp[i+1].upper().replace(" ", "")
-        #     if type(curp) is list: #segundo caso solo toma el ultimo elemento de la lista
-        #         curp = curp[-1].upper().replace(" ", "")
+    if (len(curp) >= 1):
+        for i, element in enumerate(curp): #primer caso checa por el siguiente elemento despues de curp
+            if element.upper() == "CURP" and len(curp) >= i+2:
+                curp = curp[i+1].upper().replace(" ", "")
+        if type(curp) is list: #segundo caso solo toma el ultimo elemento de la lista
+            curp = curp[-1].upper().replace(" ", "")
 
-        # try:
-        #     genero = curp[10]
-        # except:
-        #     saveCropCredential(width*0.91, height*0.33, width*0.97, height*0.445, path, "INE-genero.png", INE)
-        #     genero = reader2.readtext(path + f"INE-genero.png", detail = 0)
-        #     for elemento in genero:
-        #         if "H" in elemento:
-        #             genero = "H"
-        #         elif "M" in elemento:
-        #             genero = "M"
-        #     if type(genero) is list:
-        #         genero = ""
+    try:
+        genero = curp[10]
+    except:
+        saveCropCredential(width*0.91, height*0.33, width*0.97, height*0.445, path, "INE-genero.png", INE)
+        genero = readField(path, "INE-genero.png")
+        for elemento in genero:
+            if "H" in elemento:
+                genero = "H"
+            elif "M" in elemento:
+                genero = "M"
+        if type(genero) is list:
+            genero = ""
 
-        # saveCropCredential(width*0.615, height*0.76, width*0.70, height*0.84, path, "INE-municipio.png", INE)
-        # municipality = reader2.readtext(path + "INE-municipio.png", detail=0)
-        # try:
-        #     municipality = ' '.join(municipality)
-        # except:
-        #     municipality = ''
+    saveCropCredential(width*0.615, height*0.76, width*0.70, height*0.84, path, "INE-municipio.png", INE)
+    municipality = readField(path, "INE-municipio.png")
+
+    return nombre, domicilio, fechaDeNacimiento, curp, genero, municipality
             
 def ModeloIne(
         filename: str,
@@ -210,52 +232,7 @@ def ModeloIne(
         return {}
 
     if credencialValida and int(emision) < 2020:
-        saveCropCredential(width*0.28, height*0.26, width*0.7, height*0.46, path, "INE-nombre.png", INE)
-        nombre = reader2.readtext(path + "INE-nombre.png", detail = 0)[1:]
-        nombre = " ".join(nombre).upper()
-        
-        saveCropCredential(width*0.30, height*0.44, width*0.825, height*0.69, path, "INE-domicilio.png", INE)
-        domicilio = reader2.readtext(path + "INE-domicilio.png", detail = 0)[1:]
-        domicilio = " ".join(domicilio).upper()
-
-        saveCropCredential(width*0.76, height*0.28, width*0.98, height*0.365, path, "INE-fechaDeNacimiento.png", INE)
-        fechaDeNacimiento = reader2.readtext(path + "INE-fechaDeNacimiento.png", detail = 0)
-        if len(fechaDeNacimiento) >= 1 and len(fechaDeNacimiento[-1]) >= 8:
-            fechaDeNacimiento = fechaDeNacimiento[-1] 
-            diaDeNacimiento = fechaDeNacimiento[0:2]
-            mesDeNacimiento =  fechaDeNacimiento[3:5] if (fechaDeNacimiento[2] == "/") else fechaDeNacimiento[2:4]
-            añoDeNacimiento = fechaDeNacimiento[-4:]
-            fechaDeNacimiento = f"{añoDeNacimiento}-{mesDeNacimiento}-{diaDeNacimiento}"
-        
-        saveCropCredential(width*0.29, height*0.705, width*0.68, height*0.79, path, "INE-curp.png", INE)
-        curp = reader2.readtext(path + "INE-curp.png", detail = 0)
-
-        if (len(curp) >= 1):
-            for i, element in enumerate(curp): #primer caso checa por el siguiente elemento despues de curp
-                if element.upper() == "CURP" and len(curp) >= i+2:
-                    curp = curp[i+1].upper().replace(" ", "")
-            if type(curp) is list: #segundo caso solo toma el ultimo elemento de la lista
-                curp = curp[-1].upper().replace(" ", "")
-
-        try:
-            genero = curp[10]
-        except:
-            saveCropCredential(width*0.91, height*0.33, width*0.97, height*0.445, path, "INE-genero.png", INE)
-            genero = reader2.readtext(path + f"INE-genero.png", detail = 0)
-            for elemento in genero:
-                if "H" in elemento:
-                    genero = "H"
-                elif "M" in elemento:
-                    genero = "M"
-            if type(genero) is list:
-                genero = ""
-
-        saveCropCredential(width*0.615, height*0.76, width*0.70, height*0.84, path, "INE-municipio.png", INE)
-        municipality = reader2.readtext(path + "INE-municipio.png", detail=0)
-        try:
-            municipality = ' '.join(municipality)
-        except:
-            municipality = ''
+        nombre, domicilio, fechaDeNacimiento, curp, genero, municipality = extractInformation(width, height, path, INE)
 
     if credencialValida and int(emision) >= 2020:
         saveCropCredential(width*0.28, height*0.26, width*0.7, height*0.52, path, "INE-nombre.png", INE)
