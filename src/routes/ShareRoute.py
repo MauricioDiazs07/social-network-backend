@@ -4,7 +4,7 @@ from src.models.ShareModel import ShareModel
 from src.models.MultimediaModel import MultimediaModel
 from src.models.InteractionModel import InteractionModel
 from src.models.entities.share import CreateShare
-from src.models.entities.multimedia import MultimediaOut
+from src.models.entities.multimedia import Multimedia
 import uuid
 from decouple import config
 
@@ -31,6 +31,7 @@ def create_share():
         share_type = request.form['share_type']
         share = CreateShare(profile_id, share_type, description)
         share_id = ShareModel.create_share(share)
+       
         if len(request.files) > 0:
             for fileitem in request.files:
                 file = request.files[fileitem]
@@ -38,7 +39,7 @@ def create_share():
                     new_name = uuid.uuid4().hex + '.' + file.filename.rsplit('.',1)[1].lower()
                     upload_file_to_s3(file,new_name)
                     url = 'https://{}.s3.{}.amazonaws.com/{}'.format(config('AWS_BUCKET_NAME'),config('REGION_NAME'),new_name)
-                    multimedia = MultimediaOut(share_id, share_type, url, file.filename.rsplit('.',1)[1].lower())
+                    multimedia = Multimedia(share_id, share_type, url, file.filename.rsplit('.',1)[1].lower())
                     MultimediaModel.create_multimedia(multimedia)
 
         return jsonify({'message': share_id})
