@@ -80,7 +80,7 @@ def list_share():
     try:
         shares = ShareModel.get_all_share()
         multimedias = MultimediaModel.get_all_multimedia()
-        comments = InteractionModel.get_all_comments();
+        comments = InteractionModel.get_all_comments()
         likes = InteractionModel.get_all_likes()
         post = []
         for share in shares:
