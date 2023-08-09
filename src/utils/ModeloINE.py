@@ -182,7 +182,17 @@ def extractInformation(
     saveCropCredential(width*0.615, height*0.76, width*0.70, height*0.84, path, "INE-municipio.png", INE)
     municipality = readField(path, "INE-municipio.png")
 
-    return nombre, domicilio, fechaDeNacimiento, curp, genero, municipality
+    saveCropCredential(width* 0.68, height*0.75, width*0.87, height*0.83, path, "INE-seccion.png", INE)
+    lista = readField(path, "INE-seccion.png")
+    if type(lista) == list:
+        for palabra in lista:
+            if len(palabra) == 4 and palabra.isnumeric():
+                seccion = palabra
+                break
+        else:
+            seccion = ""
+
+    return nombre, domicilio, fechaDeNacimiento, curp, genero, municipality, seccion
             
 def ModeloIne(
         filename: str,
@@ -232,7 +242,7 @@ def ModeloIne(
         return {}
 
     if credencialValida and int(emision) < 2020:
-        nombre, domicilio, fechaDeNacimiento, curp, genero, municipality = extractInformation(width, height, path, INE)
+        nombre, domicilio, fechaDeNacimiento, curp, genero, municipality, seccion = extractInformation(width, height, path, INE)
 
     if credencialValida and int(emision) >= 2020:
         saveCropCredential(width*0.28, height*0.26, width*0.7, height*0.52, path, "INE-nombre.png", INE)
@@ -284,6 +294,16 @@ def ModeloIne(
             municipality = ' '.join(municipality)
         except:
             municipality = ''
+
+        saveCropCredential(width* 0.68, height*0.75, width*0.87, height*0.83, path, "INE-seccion.png", INE)
+        seccion = reader2.readtext(path + f"INE-seccion.png", detail = 0)
+        if type(lista) == list:
+            for palabra in lista:
+                if len(palabra) == 4 and palabra.isnumeric():
+                    seccion = palabra
+                    break
+            else:
+                seccion = ""
     
     estado = getState(
         width,
@@ -301,7 +321,8 @@ def ModeloIne(
                         municipality,
                         domicilio,
                         format_date_to_front(fechaDeNacimiento),
-                        curp
+                        curp,
+                        seccion
                 )
     
     return ine_info.to_JSON()
