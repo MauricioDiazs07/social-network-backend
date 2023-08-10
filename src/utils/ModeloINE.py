@@ -296,7 +296,7 @@ def ModeloIne(
             municipality = ''
 
         saveCropCredential(width* 0.68, height*0.75, width*0.87, height*0.83, path, "INE-seccion.png", INE)
-        seccion = reader2.readtext(path + f"INE-seccion.png", detail = 0)
+        lista = reader2.readtext(path + f"INE-seccion.png", detail = 0)
         if type(lista) == list:
             for palabra in lista:
                 if len(palabra) == 4 and palabra.isnumeric():
