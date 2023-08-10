@@ -76,6 +76,7 @@ insert into "T_PROFILE" values (
 	''
 );
 
+/* El admin no necesita tener datos en la user data */
 insert into "T_USER_DATA" values (
 	2,
 	'0c7ceb44a155db2fd60058e64eb255ch',
