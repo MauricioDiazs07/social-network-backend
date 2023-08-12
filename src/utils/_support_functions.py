@@ -1,4 +1,5 @@
 from src.models.entities.states.States import STATES, MUNICIPALITIES
+import re
 
 months = [
   'enero',
@@ -14,14 +15,19 @@ months = [
   'noviembre',
   'diciembre'
 ]
+form_names = ['NOMBRE', 'DOMICILIO', 'CURP', 'ESTADO', 'MUNICIPIO', 'SECCION', 'LOCALIDAD', 'EMISION', 'VIGENCIA', 'UN ', 'INE', 'CLAVE DE ELECIUR', 'ANO 0E rEGISTRU', 'ANO 0E REGISTRU', 'FECHA DE NACIMIENTO', 'ANO DE REGISTRO', 'FECHA DE NACIMIEN', 'AÑODEREGISTRO', 'AÑODEREGISTF', 'ÑO DE REGISTRO']
 
 def format_date_to_front(date: str) -> str:
-    day = date[-2:]
-    month = date[5:7]
-    month = months[int(month)-1]
-    month = month[0].upper() + month[1:]
-    year = date[:4]
-    return f'{day}-{month}-{year}'
+    print("DATE", date)
+    try:
+        day = date.split("/")[0]
+        month = date.split("/")[1]
+        month = months[int(month)-1]
+        month = month[0].upper() + month[1:]
+        year = date.split("/")[2]
+        return f'{day}-{month}-{year}'
+    except:
+        return ''
 
 def format_date_to_DB(date: str) -> str:
     print(date.split("-"))
@@ -43,3 +49,82 @@ def getState(state_: str) -> str:
 
 def getMunicipality(state_:str, mun_: str) -> str:
     return MUNICIPALITIES[state_][mun_]
+
+def preprocessText(text: str) -> str:
+    """
+        Removes extra information in a text field from INE
+
+        Inputs:
+            text: read field from credential
+
+        Outputs:
+            string - clean text
+        
+    """
+    text = text.replace('á', 'a')
+    text = text.replace('é', 'e')
+    text = text.replace('í', 'i')
+    text = text.replace('ó', 'o')
+    text = text.replace('ú', 'u')
+
+    for word in form_names:
+        text = text.replace(word, '')
+
+    return text.strip()
+
+def replaceNum(text: str) -> str:
+    text = text.lower()
+    text = text.replace("s", "5")
+    text = text.replace("o", "0")
+    text = text.replace("ô", "6")
+    text = text.replace("i", "1")
+    text = text.replace("l", "1")
+    text = text.replace("g", "6")
+    text = text.replace("z", "2")
+    text = text.replace("b", "8")
+
+    return text
+
+def validateCURP(
+    curp: str,
+    birthDate: str
+) -> str:
+    curp = curp.split()
+    for element in curp:
+        if len(element) == 18:
+            curp = element
+            break
+
+    if (type(curp) == list):
+        return ''
+    
+    bd_part = birthDate.split("/")[::-1]
+    bd_part = ''.join([x[-2:] for x in bd_part])
+    curp = curp[:4] + replaceNum(curp[4:10]) + curp[10:]
+
+    if (replaceNum(curp[4:10]) != bd_part):
+        curp = curp[:4] + bd_part + curp[10:]
+
+    curp = curp[:-2] + replaceNum(curp[-2:])
+
+    return curp
+
+def validateGender(gend: str) -> str:
+    if "H" in gend:
+        gend = "H"
+    elif "M" in gend:
+        gend = "M"
+    else:
+        gend = ""
+
+    return gend
+
+def validateCode(code: str, reps: int) -> str:
+    code = replaceNum(code)
+    re_ ='^(\d{' + str(reps) + '})$'
+    re_ = re.match(re_, code)
+
+    if (re_):
+        return code
+    else:
+        return ''
