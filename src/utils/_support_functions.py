@@ -1,4 +1,6 @@
 from src.models.entities.states.States import STATES, MUNICIPALITIES
+from datetime import datetime
+import math
 import re
 
 months = [
@@ -18,7 +20,6 @@ months = [
 form_names = ['NOMBRE', 'DOMICILIO', 'CURP', 'ESTADO', 'MUNICIPIO', 'SECCION', 'LOCALIDAD', 'EMISION', 'VIGENCIA', 'UN ', 'INE', 'CLAVE DE ELECIUR', 'ANO 0E rEGISTRU', 'ANO 0E REGISTRU', 'FECHA DE NACIMIENTO', 'ANO DE REGISTRO', 'FECHA DE NACIMIEN', 'AÑODEREGISTRO', 'AÑODEREGISTF', 'ÑO DE REGISTRO']
 
 def format_date_to_front(date: str) -> str:
-    print("DATE", date)
     try:
         day = date.split("/")[0]
         month = date.split("/")[1]
@@ -127,3 +128,25 @@ def validateCode(code: str, reps: int) -> str:
         return code
     else:
         return ''
+    
+def reformatCreatedDate(date: datetime) -> str:
+    current_date = datetime.today()
+    time_diff = current_date - date
+    time_diff_hours = time_diff.seconds / 3600
+    time_diff_min = time_diff.seconds - (math.floor(time_diff_hours) * 3600)
+    time_diff_min = round(time_diff_min / 60)
+
+    if (time_diff.days == 0 and time_diff_hours < 1 and time_diff_min < 2):
+        return 'Ahora'
+
+    elif (time_diff.days == 0):
+        time = round(time_diff_hours) if time_diff_hours >= 1 else time_diff_min
+        measure = 'horas' if time_diff_hours >= 1 else 'minutos'
+        return f'Hace {time} {measure}'
+
+    elif (time_diff.days == 1):
+        return 'Ayer'
+    
+    else:
+        date = f'{date.day}/{date.month}/{date.year}'
+        return format_date_to_front(date)
