@@ -30,7 +30,6 @@ def format_date_to_front(date: str) -> str:
         return ''
 
 def format_date_to_DB(date: str) -> str:
-    print(date.split("-"))
     day = date.split("-")[0]
     month = date.split("-")[1]
     month = months.index(month.lower()) + 1

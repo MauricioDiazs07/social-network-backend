@@ -28,3 +28,16 @@ def upload_file_to_s3(file, new_name, acl="public-read"):
         return e
     
     return file.filename
+
+
+def delete_file_from_s3(file):
+    try:
+        s3.delete_object(
+            Bucket=config('AWS_BUCKET_NAME'),
+            Key=file
+        )
+    except Exception as e:
+        print("Error: ", e)
+        return e
+    
+    return "OK"

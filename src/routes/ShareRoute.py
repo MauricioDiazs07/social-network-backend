@@ -1,7 +1,10 @@
 from flask import Blueprint, jsonify, request
-from src.utils.AmazonS3 import upload_file_to_s3
+from src.utils.AmazonS3 import upload_file_to_s3, delete_file_from_s3
 from src.models.ShareModel import ShareModel
-from src.models.entities.share import Share, Multimedia
+from src.models.MultimediaModel import MultimediaModel
+from src.models.InteractionModel import InteractionModel
+from src.models.entities.share import CreateShare
+from src.models.entities.multimedia import Multimedia
 import uuid
 from decouple import config
 
@@ -26,9 +29,9 @@ def create_share():
         profile_id = request.form['profile_id']
         description = request.form['description']
         share_type = request.form['share_type']
-        share = Share(None, profile_id, share_type, description)
+        share = CreateShare(profile_id, share_type, description)
         share_id = ShareModel.create_share(share)
-        print(request.files)
+       
         if len(request.files) > 0:
             for fileitem in request.files:
                 file = request.files[fileitem]
@@ -37,23 +40,37 @@ def create_share():
                     upload_file_to_s3(file,new_name)
                     url = 'https://{}.s3.{}.amazonaws.com/{}'.format(config('AWS_BUCKET_NAME'),config('REGION_NAME'),new_name)
                     multimedia = Multimedia(share_id, share_type, url, file.filename.rsplit('.',1)[1].lower())
-                    ShareModel.create_multimedia(multimedia)
+                    MultimediaModel.create_multimedia(multimedia)
 
         return jsonify({'message': share_id})
     
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500
 
+@main.route('/update', methods = ['POST'])
+def update_share():
+    try:
+        share_id = request.json['share_id']
+        description = request.json['description']
+        print("-------------")
+        share_id = ShareModel.update_share(share_id,description)
+        return jsonify({'message': share_id})
+    except Exception as ex:
+        return jsonify({'message': str(ex)}), 500
 
-@main.route('/get/<int:share_id>/', methods = ['GET'])
+@main.route('/get/<int:share_id>', methods = ['GET'])
 def get_share(share_id):
     try:
         shares = ShareModel.get_share(share_id)
-        multimedia = ShareModel.get_multimedia(share_id)
-        return jsonify({
-            "share": shares,
-            "multimedia": multimedia
-        })
+        if shares == None:
+            return {"message": "Share not fount"}
+        multimedia = MultimediaModel.get_multimedia(share_id)
+        comment = InteractionModel.get_comment(share_id)
+        likes = InteractionModel.get_likes(share_id)
+        shares['multimedia'] = {"count": len(multimedia), "data": multimedia}
+        shares['comments'] = {"count": len(comment), "data": comment}
+        shares['likes'] = {"count": len(likes), "data": likes}
+        return shares
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500
     
@@ -61,22 +78,50 @@ def get_share(share_id):
 @main.route('/list', methods = ['GET'])
 def list_share():
     try:
-        shares_all = []
-        shares = ShareModel.get_all()
+        shares = ShareModel.get_all_share()
+        multimedias = MultimediaModel.get_all_multimedia()
+        comments = InteractionModel.get_all_comments()
+        likes = InteractionModel.get_all_likes()
+        post = []
         for share in shares:
-            multimedia = ShareModel.get_multimedia(share["share_id"])
-            shares_all.append({
-                "share": share,
-                "multimedia": multimedia
-            })
-        return shares_all
+            post_multimedia = []
+            post_comment = []
+            post_like = []
+            for multimedia in multimedias:
+                if 'share_id' in multimedia and share['id'] == multimedia['share_id']:
+                    multimedia.pop('share_id')
+                    multimedia.pop('share_type')                      
+                    post_multimedia.append(multimedia)
+            for comment in comments:
+                if 'share_id' in comment and share['id'] == comment['share_id']:
+                    comment.pop('share_id')
+                    comment.pop('share_type')
+                    post_comment.append(comment)
+            for like in likes:
+                if 'share_id' in like and share['id'] == like['share_id']:
+                    like.pop('share_id')
+                    like.pop('share_type')
+                    post_like.append(like)        
+            share['multimedia'] = {"count": len(post_multimedia), "data": post_multimedia}
+            share['comments'] = {"count": len(post_comment), "data": post_comment}
+            share['likes'] = {"count": len(post_like), "data": post_like}
+            post.append(share)
+        return post
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500
     
-@main.route('/delete/<int:share_id>/', methods = ['DELETE'])
+
+@main.route('/delete/<int:share_id>', methods = ['DELETE'])
 def delete_share(share_id):
     try:
         ShareModel.delete_share(share_id)
+        multimedia = MultimediaModel.get_multimedia(share_id)
+        for archive in multimedia:
+            file = archive['archive_url'].split("/")[-1]
+            delete_file_from_s3(file)
+        MultimediaModel.delete_multimedia(share_id)
+        InteractionModel.delete_all_comments(share_id)
+        InteractionModel.delete_all_likes(share_id)
         return jsonify({
             "message": "OK"
         })
