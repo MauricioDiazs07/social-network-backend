@@ -5,28 +5,24 @@ from src.models.entities.user.User import User
 
 main = Blueprint('user_blueprint', __name__)
 
-@main.route('/')
-def get_users():
-
-    has_access = Security.verify_user_token(request.headers)
-
-    if has_access:
-        try:
-            users = UsersModel.get_users()
-            return jsonify(users)
-        except Exception as ex:
-            return jsonify({'message': str(ex)}), 500
-    else:
-        response = jsonify({'message': 'Unauthorized'})
-        return response, 401
-
-
-@main.route('/self', methods = ['POST'])
-def get_user():
+@main.route('/update',  methods = ['PATCH'])
+def update_users_data():
     try:
+        profile_id = request.json['profile_id']
         email = request.json['email']
-        user = User(None, email, None, None, None, None, None, None, None)
-        user = UsersModel.get_user(user)
+        phone_number = request.json['phone_number']
+        
+        users = UsersModel.get_users()
+        return jsonify(users)
+    except Exception as ex:
+        return jsonify({'message': str(ex)}), 500
+   
+
+
+@main.route('/<profile_id>', )
+def get_user_data(profile_id):
+    try:
+        user = UsersModel.get_user_data(profile_id)
         return jsonify(user)
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500

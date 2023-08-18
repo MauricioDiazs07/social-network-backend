@@ -1,25 +1,23 @@
 class User():
 
-    def __init__(self, full_name, email,usr_password, gender, state, municipality, birthday, role_id, level_id) -> None:
-        self.full_name = full_name
-        self.email = email
-        self.usr_password = usr_password
+    def __init__(self, name,birthday,gender,state,municipality, email, phone_number , profile_photo ) -> None:
+        self.name = name
+        self.birthday = birthday
         self.gender = gender
         self.state = state
         self.municipality = municipality
-        self.birthday = birthday
-        self.role_id = role_id
-        self.level_id = level_id
+        self.email = email
+        self.phone_number = phone_number
+        self.profile_photo = profile_photo
 
     def to_JSON(self):
         return {
-            'full_name': self.full_name,
-            'email': self.email,
-            'usr_password': self.usr_password,
+            'name': self.name,
+            'birthday': self.birthday,
             'gender': self.gender,
             'state': self.state,
             'municipality': self.municipality,
-            'birthday': self.birthday,
-            'role_id': self.role_id,
-            'level': self.level_id
+            'email': self.email,
+            'phone_number': self.phone_number,
+            'profile_photo': self.profile_photo,
         }

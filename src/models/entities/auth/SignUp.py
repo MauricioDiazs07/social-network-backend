@@ -14,7 +14,8 @@ class SignUp():
             birthdate,
             curp,
             identification_photo,
-            phone
+            phone,
+            profile_photo
         ) -> None:
         self.id = profile_id
         self.email = email
@@ -28,6 +29,7 @@ class SignUp():
         self.curp = curp
         self.identification_photo = identification_photo
         self.phone = phone
+        self.profile_photo = profile_photo
 
     def to_JSON(self) -> Dict[str, str]:
         return {
@@ -42,5 +44,6 @@ class SignUp():
             'birthdate': self.birthdate,
             'curp': self.curp,
             'identification_photo': self.identification_photo,
-            'phone': self.phone
+            'phone': self.phone,
+            'profile_photo': self.profile_photo
         }
