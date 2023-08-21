@@ -2,28 +2,37 @@ from src.database.db import get_connection
 from .entities.user.User import User
 
 GET_USER_DATA = """ SELECT "NAME", "BIRTHDATE", "GENDER", "STATE", "MUNICIPALITY", "EMAIL", "PHONE_NUMBER", "PROFILE_PHOTO" FROM "T_USER_DATA" JOIN "T_PROFILE" ON "T_USER_DATA"."PROFILE_ID" = "T_PROFILE"."ID" WHERE "T_PROFILE"."ID" = %s """
-UPDATE = ""
+UPDATE_PHOTO = """ UPDATE "T_PROFILE" SET "EMAIL"= %s, "PHONE_NUMBER" = %s, "PROFILE_PHOTO" = %s WHERE  "ID" = %s; """
+UPDATE = """ UPDATE "T_PROFILE" SET "EMAIL"= %s, "PHONE_NUMBER" = %s WHERE  "ID" = %s; """
 
 class UsersModel():
 
     @classmethod
-    def update_user(self):
+    def update_user(self, profile_id, email, phone_number):
         try:
             conn = get_connection()
-            users = []
             with conn.cursor() as cur:
-                cur.execute("SELECT full_name, email, usr_password, gender, current_state, municipality, birthday, role_id, level_id FROM T_USER_DATA ORDER BY full_name ASC")
-                resultset = cur.fetchall()
-
-                for row in resultset:
-                    user = User(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8])
-                    users.append(user.to_JSON())
-
+                cur.execute(UPDATE, (email,phone_number,profile_id))
+                affected_row = cur.rowcount
+                conn.commit()
             conn.close()
-            return users
+            return affected_row
         except Exception as ex:
             raise Exception(ex)
     
+    @classmethod
+    def update_data_photo_user(self, profile_id, email, phone_number,profile_photo):
+        try:
+            conn = get_connection()
+            with conn.cursor() as cur:
+                cur.execute(UPDATE_PHOTO, (email,phone_number,profile_photo,profile_id))
+                affected_row = cur.rowcount
+                conn.commit()
+            conn.close()
+            return affected_row
+        except Exception as ex:
+            raise Exception(ex)
+
     @classmethod
     def get_user_data(self, profile_id):
         try:

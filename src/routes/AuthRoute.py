@@ -2,6 +2,8 @@ from flask import Blueprint, jsonify, request
 from src.models.entities.auth import Login, SignUp
 from src.models.AuthModel import AuthModel
 from src.utils.Security import Security
+from src.models.entities.multimedia import Multimedia
+from src.models.MultimediaModel import MultimediaModel
 import uuid
 from decouple import config
 from src.utils._support_functions import \
@@ -54,11 +56,15 @@ def sign_up():
         birthday = request.form['birthday']
         curp = request.form['curp']
         phone = request.form['phone']
+        profile_id = hashlib.shake_256(email.encode('utf-8')).hexdigest(16)
+
         file = request.files['identification_photo']
         if file and allowed_file(file.filename):
             new_name = uuid.uuid4().hex + '.' + file.filename.rsplit('.',1)[1].lower()
             upload_file_to_s3(file,new_name)
             identification_photo = 'https://{}.s3.{}.amazonaws.com/{}'.format(config('AWS_BUCKET_NAME'),config('REGION_NAME'),new_name)
+            multimedia = Multimedia(profile_id, 'IDENTIFICATION', identification_photo, file.filename.rsplit('.',1)[1].lower())
+            MultimediaModel.create_multimedia(multimedia)
 
         if 'profile_photo' in request.files:
             file = request.files['profile_photo']
@@ -66,22 +72,26 @@ def sign_up():
                 new_name = uuid.uuid4().hex + '.' + file.filename.rsplit('.',1)[1].lower()
                 upload_file_to_s3(file,new_name)
                 profile_photo = 'https://{}.s3.{}.amazonaws.com/{}'.format(config('AWS_BUCKET_NAME'),config('REGION_NAME'),new_name)
-       
-        profile_id = hashlib.shake_256(email.encode('utf-8')).hexdigest(16)
-        
+                multimedia = Multimedia(profile_id, 'PROFILE', profile_photo, file.filename.rsplit('.',1)[1].lower())
+                MultimediaModel.create_multimedia(multimedia)
+        else:
+            profile_photo = None
+
         # process information for database
         birthday = format_date_to_DB(birthday)
         gender = getGender(gender)
         state = getState(state_id)
         municipality = getMunicipality(state_id, municipality_id)
-        print("------------------")
 
         signup = SignUp(profile_id,email,password,name,gender,state,municipality,address,birthday,curp,identification_photo,phone,profile_photo)
 
         affected_row = AuthModel.signup(signup)
 
         if affected_row == 1:
-            return jsonify(signup.email)
+            return jsonify({
+                'message': 'OK',
+                'user': email
+            })
         else:
             response = jsonify({'message': 'Error al registrarse'})
             return response, 500
