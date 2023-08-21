@@ -7,6 +7,7 @@ GET_ALL_SHARE = """ SELECT "T_SHARE"."ID","NAME","PROFILE_ID","T_PROFILE"."PROFI
 GET_SHARE = """ SELECT "T_SHARE"."ID","NAME","PROFILE_ID","T_PROFILE"."PROFILE_PHOTO","T_SHARE"."DESCRIPTION","SHARE_TYPE","T_SHARE"."CREATION_DATE" FROM "T_SHARE"  INNER JOIN "T_PROFILE" ON "T_SHARE"."PROFILE_ID" = "T_PROFILE"."ID" WHERE "T_SHARE"."ID" = %s """
 DELETE_SHARE = """ delete from "T_SHARE" where "ID" = %s """
 UPDATE_SHARE = """ UPDATE "T_SHARE" SET "DESCRIPTION" = %s WHERE "ID" = %s """
+GET_SHARE_FROM_PROFILE = """ SELECT "T_SHARE"."ID","NAME","PROFILE_ID","T_PROFILE"."PROFILE_PHOTO","T_SHARE"."DESCRIPTION","SHARE_TYPE","T_SHARE"."CREATION_DATE" FROM "T_SHARE"  INNER JOIN "T_PROFILE" ON "T_SHARE"."PROFILE_ID" = "T_PROFILE"."ID" WHERE "T_PROFILE"."ID" = %s ORDER BY "T_SHARE"."CREATION_DATE" ASC;  """
 
 class ShareModel():
 
@@ -58,6 +59,23 @@ class ShareModel():
             shares = []
             with conn.cursor() as cur:
                 cur.execute(GET_ALL_SHARE)
+                resultset = cur.fetchall()
+                for row in resultset:
+                    share = Share(row[0],row[1],row[2],row[3],row[4],row[5],row[6])
+                    shares.append(share.to_JSON())
+                conn.commit()
+            conn.close()
+            return shares
+        except Exception as ex:
+            raise Exception(ex)
+        
+    @classmethod
+    def get_shares_from_profile(self, profile_id):
+        try:
+            conn = get_connection()
+            shares = []
+            with conn.cursor() as cur:
+                cur.execute(GET_SHARE_FROM_PROFILE, (profile_id,))
                 resultset = cur.fetchall()
                 for row in resultset:
                     share = Share(row[0],row[1],row[2],row[3],row[4],row[5],row[6])

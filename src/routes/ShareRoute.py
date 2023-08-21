@@ -39,7 +39,7 @@ def create_share():
                     new_name = uuid.uuid4().hex + '.' + file.filename.rsplit('.',1)[1].lower()
                     upload_file_to_s3(file,new_name)
                     url = 'https://{}.s3.{}.amazonaws.com/{}'.format(config('AWS_BUCKET_NAME'),config('REGION_NAME'),new_name)
-                    multimedia = Multimedia(share_id, share_type, url, file.filename.rsplit('.',1)[1].lower())
+                    multimedia = Multimedia(profile_id, share_id, share_type, url, file.filename.rsplit('.',1)[1].lower())
                     MultimediaModel.create_multimedia(multimedia)
 
         return jsonify({'message': share_id})
@@ -86,8 +86,50 @@ def list_share():
         multimedias = MultimediaModel.get_all_multimedia()
         comments = InteractionModel.get_all_comments()
         likes = InteractionModel.get_all_likes()
+        post = []
         print(shares)
-        print(likes)
+        print(multimedias)
+        print("---------------")
+        for share in shares:
+            autoLike = False
+            post_multimedia = []
+            post_comment = []
+            post_like = []
+            for multimedia in multimedias:
+                if str(share['id']) == multimedia['share_id']:
+                    multimedia.pop('share_id')
+                    multimedia.pop('share_type')
+                    multimedia.pop('profile_id')
+                    post_multimedia.append(multimedia)
+                    print(post_multimedia)   
+            for comment in comments:
+                if 'share_id' in comment and share['id'] == comment['share_id']:
+                    comment.pop('share_id')
+                    comment.pop('share_type')
+                    post_comment.append(comment)
+            for like in likes:
+                if 'share_id' in like and share['id'] == like['share_id']:
+                    like.pop('share_id')
+                    like.pop('share_type')
+                    post_like.append(like)
+                    if like['profile_id'] == share['profileId']:
+                        autoLike = True
+            share['multimedia'] = {"count": len(post_multimedia), "data": post_multimedia}
+            share['comments'] = {"count": len(post_comment), "data": post_comment}
+            share['likes'] = {"count": len(post_like), "data": post_like, "like": autoLike}
+            post.append(share)
+        return post
+    except Exception as ex:
+        return jsonify({'message': str(ex)}), 500
+    
+
+@main.route('/profile/<profile_id>', methods = ['GET'])
+def list_share_from_profile(profile_id):
+    try:
+        shares = ShareModel.get_shares_from_profile(profile_id)
+        multimedias = MultimediaModel.get_all_multimedia()
+        comments = InteractionModel.get_all_comments()
+        likes = InteractionModel.get_all_likes()
         post = []
         for share in shares:
             post_multimedia = []
@@ -119,7 +161,8 @@ def list_share():
         return post
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500
-    
+
+
 
 @main.route('/delete/<share_id>', methods = ['DELETE'])
 def delete_share(share_id):
