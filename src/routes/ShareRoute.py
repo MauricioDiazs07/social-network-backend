@@ -52,25 +52,29 @@ def update_share():
     try:
         share_id = request.json['share_id']
         description = request.json['description']
-        print("-------------")
         share_id = ShareModel.update_share(share_id,description)
         return jsonify({'message': share_id})
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500
 
-@main.route('/get/<int:share_id>', methods = ['GET'])
+@main.route('/get/<share_id>', methods = ['GET'])
 def get_share(share_id):
     try:
-        shares = ShareModel.get_share(share_id)
-        if shares == None:
+        share = ShareModel.get_share(share_id)
+        if share == None:
             return {"message": "Share not fount"}
         multimedia = MultimediaModel.get_multimedia(share_id)
         comment = InteractionModel.get_comment(share_id)
         likes = InteractionModel.get_likes(share_id)
-        shares['multimedia'] = {"count": len(multimedia), "data": multimedia}
-        shares['comments'] = {"count": len(comment), "data": comment}
-        shares['likes'] = {"count": len(likes), "data": likes}
-        return shares
+        autolike = False
+        for like in likes:
+            if like['profile_id'] == share['profileId']:
+                autolike = True
+                break
+        share['multimedia'] = {"count": len(multimedia), "data": multimedia}
+        share['comments'] = {"count": len(comment), "data": comment}
+        share['likes'] = {"count": len(likes), "data": likes, "like": autolike}
+        return share
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500
     
@@ -82,11 +86,14 @@ def list_share():
         multimedias = MultimediaModel.get_all_multimedia()
         comments = InteractionModel.get_all_comments()
         likes = InteractionModel.get_all_likes()
+        print(shares)
+        print(likes)
         post = []
         for share in shares:
             post_multimedia = []
             post_comment = []
             post_like = []
+            autoLike = False
             for multimedia in multimedias:
                 if 'share_id' in multimedia and share['id'] == multimedia['share_id']:
                     multimedia.pop('share_id')
@@ -98,20 +105,23 @@ def list_share():
                     comment.pop('share_type')
                     post_comment.append(comment)
             for like in likes:
+                print(like)
                 if 'share_id' in like and share['id'] == like['share_id']:
                     like.pop('share_id')
                     like.pop('share_type')
-                    post_like.append(like)        
+                    post_like.append(like)
+                    if like['profile_id'] == share['profileId']:
+                        autoLike = True
             share['multimedia'] = {"count": len(post_multimedia), "data": post_multimedia}
             share['comments'] = {"count": len(post_comment), "data": post_comment}
-            share['likes'] = {"count": len(post_like), "data": post_like}
+            share['likes'] = {"count": len(post_like), "data": post_like, "like": autoLike}
             post.append(share)
         return post
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500
     
 
-@main.route('/delete/<int:share_id>', methods = ['DELETE'])
+@main.route('/delete/<share_id>', methods = ['DELETE'])
 def delete_share(share_id):
     try:
         ShareModel.delete_share(share_id)
