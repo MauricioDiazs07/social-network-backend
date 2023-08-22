@@ -23,7 +23,7 @@ def get_master_data(profile_id):
                     multimedia.pop('share_type')
                     multimedia.pop('profile_id')
                     post_multimedia.append(multimedia)
-                    print(post_multimedia)   
+                    print(post_multimedia)
             share['multimedia'] = {"count": len(post_multimedia), "data": post_multimedia}
 
         data = MasterModel.get_info(profile_id)

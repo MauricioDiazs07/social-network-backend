@@ -79,29 +79,27 @@ def get_share(share_id):
         return jsonify({'message': str(ex)}), 500
     
 
-@main.route('/list', methods = ['GET'])
+@main.route('/list', methods = ['POST'])
 def list_share():
     try:
+        profile_id = request.json['profile_id']
         shares = ShareModel.get_all_share()
         multimedias = MultimediaModel.get_all_multimedia()
         comments = InteractionModel.get_all_comments()
         likes = InteractionModel.get_all_likes()
         post = []
-        print(shares)
-        print(multimedias)
-        print("---------------")
         for share in shares:
             autoLike = False
             post_multimedia = []
             post_comment = []
             post_like = []
             for multimedia in multimedias:
-                if str(share['id']) == multimedia['share_id']:
+                if 'share_id' in multimedia and str(share['id']) == multimedia['share_id']:
                     multimedia.pop('share_id')
                     multimedia.pop('share_type')
                     multimedia.pop('profile_id')
                     post_multimedia.append(multimedia)
-                    print(post_multimedia)   
+                    print(post_multimedia)
             for comment in comments:
                 if 'share_id' in comment and share['id'] == comment['share_id']:
                     comment.pop('share_id')
@@ -112,7 +110,7 @@ def list_share():
                     like.pop('share_id')
                     like.pop('share_type')
                     post_like.append(like)
-                    if like['profile_id'] == share['profileId']:
+                    if like['profile_id'] == profile_id:
                         autoLike = True
             share['multimedia'] = {"count": len(post_multimedia), "data": post_multimedia}
             share['comments'] = {"count": len(post_comment), "data": post_comment}
