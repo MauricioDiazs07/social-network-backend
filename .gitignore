@@ -9,4 +9,11 @@ __pycache__/
 .env
 
 # resources
-resources/img/
+resources/
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
+
+.env_aws
+inf_beta_key.pem

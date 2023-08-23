@@ -5,6 +5,7 @@ from src.models.MultimediaModel import MultimediaModel
 from src.models.InteractionModel import InteractionModel
 from src.models.entities.share import CreateShare
 from src.models.entities.multimedia import Multimedia
+from src.utils._support_functions import reformatCreatedDate
 import uuid
 from decouple import config
 
@@ -155,6 +156,7 @@ def list_share_from_profile(profile_id):
             share['multimedia'] = {"count": len(post_multimedia), "data": post_multimedia}
             share['comments'] = {"count": len(post_comment), "data": post_comment}
             share['likes'] = {"count": len(post_like), "data": post_like, "like": autoLike}
+            share['creationDate'] = reformatCreatedDate(share['creationDate'])
             post.append(share)
         return post
     except Exception as ex:
