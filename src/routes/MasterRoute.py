@@ -3,7 +3,7 @@ from src.models.ShareModel import ShareModel
 from src.models.MasterModel import MasterModel
 from src.models.MultimediaModel import MultimediaModel
 
-main = Blueprint('master_blueprint', __name__)
+main = Blueprint('masters_blueprint', __name__)
 
 @main.route('/<profile_id>', )
 def get_master_data(profile_id):
