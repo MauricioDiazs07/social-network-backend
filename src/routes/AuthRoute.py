@@ -63,7 +63,7 @@ def sign_up():
             new_name = uuid.uuid4().hex + '.' + file.filename.rsplit('.',1)[1].lower()
             upload_file_to_s3(file,new_name)
             identification_photo = 'https://{}.s3.{}.amazonaws.com/{}'.format(config('AWS_BUCKET_NAME'),config('REGION_NAME'),new_name)
-            multimedia = Multimedia(profile_id, 'IDENTIFICATION', identification_photo, file.filename.rsplit('.',1)[1].lower())
+            multimedia = Multimedia(profile_id,profile_id, 'IDENTIFICATION', identification_photo, file.filename.rsplit('.',1)[1].lower())
             MultimediaModel.create_multimedia(multimedia)
 
         if 'profile_photo' in request.files:
@@ -82,11 +82,8 @@ def sign_up():
         gender = getGender(gender)
         state = getState(state_id)
         municipality = getMunicipality(state_id, municipality_id)
-
         signup = SignUp(profile_id,email,password,name,gender,state,municipality,address,birthday,curp,identification_photo,phone,profile_photo)
-
         affected_row = AuthModel.signup(signup)
-
         if affected_row == 1:
             return jsonify({
                 'message': 'OK',
