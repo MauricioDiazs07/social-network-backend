@@ -10,3 +10,5 @@ __pycache__/
 
 # resources
 resources/img/
+
+vision_key.json

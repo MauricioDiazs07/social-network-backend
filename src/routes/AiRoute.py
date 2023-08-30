@@ -3,11 +3,16 @@ from src.utils.ModeloINE import ModeloIne
 import base64
 import os
 import uuid
+import os
+import proto
+import json
+from google.cloud import vision
 
 main = Blueprint('ai_blueprint', __name__)
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 RESOURCES_PATH = 'src/resources/img/'
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] ='vision_key.json'
 
 def allowed_file(filename: str) -> bool:
     return '.' in filename and \
@@ -58,3 +63,16 @@ def createPost():
         return jsonify(
             {'Error': 'File type not accepted, please try again'}
         )
+    
+
+@main.route('/ine2', methods=['POST'])
+def googleOCR():
+    vision_client = vision.ImageAnnotatorClient()
+
+    content = request.files['ine'].read()
+    image = vision.Image(content=content)
+    response = vision_client.text_detection(image=image) # La respuesta 
+    texts = proto.Message.to_json(response)
+    mydict = json.loads(texts)
+
+    return mydict['textAnnotations'][0]['description']
