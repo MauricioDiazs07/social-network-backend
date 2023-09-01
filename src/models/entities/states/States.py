@@ -1,4 +1,4 @@
-STATES = {
+STATES2 = {
             "01": "AGUASCALIENTES",
             "02": "BAJA CALIFORNIA",
             "03": "BAJA CALIFORNIA SUR",
@@ -32,6 +32,8 @@ STATES = {
             "31": "YUCATAN",
             "32": "ZACATECAS"
         }
+
+STATES = {'01': 'AGS', '02': 'BC', '03': 'BCS', '04': 'CAMP', '05': 'COAH', '06': 'COL', '07': 'CHIS', '08': 'CHIH', '09': 'CDMX', '10': 'DGO', '11': 'GTO', '12': 'GRO', '13': 'HGO', '14': 'JAL', '15': 'EDOMEX', '16': 'MICH', '17': 'MOR', '18': 'NAY', '19': 'NL', '20': 'OAX', '21': 'PUE', '22': 'QRO', '23': 'QROO', '24': 'SLP', '25': 'SIN', '26': 'SON', '27': 'TAB', '28': 'TAMPS', '29': 'TLAX', '30': 'VER', '31': 'YUC','32':'ZAC'}
 
 MUNICIPALITIES = {
   "01": {
