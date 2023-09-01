@@ -7,7 +7,7 @@ STATES = {
             "06": "COLIMA",
             "07": "CHIAPAS",
             "08": "CHIHUAHUA",
-            "09": "CIUDAD DE MEXICO",
+            "09": "CDMX",
             "10": "DURANGO",
             "11": "GUANAJUATO",
             "12": "GUERRERO",
