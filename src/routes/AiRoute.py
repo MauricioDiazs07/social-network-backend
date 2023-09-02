@@ -3,11 +3,18 @@ from src.utils.ModeloINE import ModeloIne
 import base64
 import os
 import uuid
+import os
+import proto
+import json
+from google.cloud import vision
+import re
+from src.models.entities.states.States import STATES, MUNICIPALITIES
 
 main = Blueprint('ai_blueprint', __name__)
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 RESOURCES_PATH = 'src/resources/img/'
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] ='vision_key.json'
 
 def allowed_file(filename: str) -> bool:
     return '.' in filename and \
@@ -58,3 +65,70 @@ def createPost():
         return jsonify(
             {'Error': 'File type not accepted, please try again'}
         )
+    
+
+@main.route('/ine2', methods=['POST'])
+def googleOCR():
+    vision_client = vision.ImageAnnotatorClient()
+
+    content = request.files['ine'].read()
+    image = vision.Image(content=content)
+    response = vision_client.text_detection(image=image)
+    texts = proto.Message.to_json(response)
+    mydict = json.loads(texts)
+    print(mydict['textAnnotations'][0]['description'].split("\n"))
+
+    clean = []
+    patron = re.compile('[0-9]{2}\/[0-9]{2}\/[0-9]{4}')
+    patron2 = re.compile('[A-Z]{4}[0-9]{6}[A-Z]{6}[0-9]{2}')
+
+    data_ine = mydict['textAnnotations'][0]['description'].split("\n")
+    for data in data_ine:
+        space = data.split(" ")
+        if len(space) != 0:
+            for i in space:
+                clean.append(i)
+                if patron.search(i):
+                    cumple = i
+                if patron2.search(i):
+                    curp = i
+                
+        else:
+            clean.append(space)
+
+    out = {}
+
+    for j in clean[clean.index('DOMICILIO') + 1:clean.index('CLAVE')]:
+        if j.isdigit():
+            cp = clean.index(j)
+
+    try:
+        clean.index('EMISIÓN')
+        print('Viejita')
+        out['section'] = clean[clean.index('SECCIÓN') + 1]
+        out['municipality'] = clean[clean.index('MUNICIPIO') + 1]
+        out['state'] = clean[clean.index('ESTADO') + 1]
+    except:
+        print("Nueva")
+        patron3 = re.compile('^[0-9]{4}$')
+        todo = clean[clean.index('SECCIÓN'):]
+        me = " ".join(clean[cp + 1:clean.index('CLAVE')]).split(',')
+        print(len(me))
+        if (len(me) == 1):
+            me = " ".join(clean[cp + 1:clean.index('CLAVE')]).split('.')
+        
+        out['state'] = list(STATES.keys())[list(STATES.values()).index(".".join(me[1:]).strip())]
+        out['municipality'] = list(MUNICIPALITIES[out['state']].keys())[list(MUNICIPALITIES[out['state']].values()).index(me[0])]
+        
+        for k in todo:
+            if patron3.search(k):
+                out['section'] = k
+                break
+
+    out['name'] = " ".join(clean[clean.index('NOMBRE') + 1:clean.index('DOMICILIO')])
+    out['curp'] = curp
+    out['gender'] = curp[10]
+    out['birthday'] = cumple
+    out['address'] = " ".join(clean[clean.index('DOMICILIO') + 1: cp + 1])
+    
+    return jsonify(out)

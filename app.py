@@ -3,7 +3,7 @@ from src.config import config
 from flask_cors import CORS
 
 # Routes
-from src.routes import AuthRoute, UserRoute, AiRoute, ShareRoute, InterestRoute, InteractionRoute, MasterRoute
+from src.routes import AuthRoute, UserRoute, AiRoute, ShareRoute, InterestRoute, InteractionRoute, MasterRoute, ProfileRoute
 
 app = Flask(__name__)
 CORS(app)
@@ -20,6 +20,7 @@ app.register_blueprint(ShareRoute.main, url_prefix = '/api/share')
 app.register_blueprint(InterestRoute.main, url_prefix = '/api/interest')
 app.register_blueprint(InteractionRoute.main, url_prefix = '/api/interaction')
 app.register_blueprint(MasterRoute.main, url_prefix = '/api/master')
+app.register_blueprint(ProfileRoute.main, url_prefix = '/api/profile')
 
 # Error handlers
 app.register_error_handler(404, page_not_fount)
