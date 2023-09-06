@@ -128,7 +128,8 @@ def googleOCR():
         if (len(me) == 1):
             me = " ".join(clean[cp + 1:clean.index('CLAVE')]).split('.')
         
-        out['state'] = list(STATES.keys())[list(STATES.values()).index(".".join(me[1:]).strip())]
+        index = (list(STATES.values()).index(".".join(me[1:]).strip().replace(".","")))
+        out['state'] = list(STATES.keys())[index]
         out['municipality'] = list(MUNICIPALITIES[out['state']].keys())[list(MUNICIPALITIES[out['state']].values()).index(me[0])]
         
         for k in todo:
