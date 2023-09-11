@@ -80,7 +80,7 @@ def get_share(share_id):
         return jsonify({'message': str(ex)}), 500
     
 
-@main.route('/list', methods = ['POST'])
+@main.route('/list/post', methods = ['POST'])
 def list_share():
     try:
         profile_id = request.json['profile_id']
@@ -89,35 +89,79 @@ def list_share():
         comments = InteractionModel.get_all_comments()
         likes = InteractionModel.get_all_likes()
         post = []
+        history = []
         for share in shares:
-            autoLike = False
-            post_multimedia = []
-            post_comment = []
-            post_like = []
-            for multimedia in multimedias:
-                if 'share_id' in multimedia and str(share['id']) == multimedia['share_id']:
-                    multimedia.pop('share_id')
-                    multimedia.pop('share_type')
-                    multimedia.pop('profile_id')
-                    post_multimedia.append(multimedia)
-                    print(post_multimedia)
-            for comment in comments:
-                if 'share_id' in comment and share['id'] == comment['share_id']:
-                    comment.pop('share_id')
-                    comment.pop('share_type')
-                    post_comment.append(comment)
-            for like in likes:
-                if 'share_id' in like and share['id'] == like['share_id']:
-                    like.pop('share_id')
-                    like.pop('share_type')
-                    post_like.append(like)
-                    if like['profile_id'] == profile_id:
-                        autoLike = True
-            share['multimedia'] = {"count": len(post_multimedia), "data": post_multimedia}
-            share['comments'] = {"count": len(post_comment), "data": post_comment}
-            share['likes'] = {"count": len(post_like), "data": post_like, "like": autoLike}
-            post.append(share)
-        return post
+            print(share)
+            if share['shareType'] == 'POST':
+                autoLike = False
+                post_multimedia = []
+                post_comment = []
+                post_like = []
+                for multimedia in multimedias:
+                    if 'share_id' in multimedia and str(share['id']) == multimedia['share_id']:
+                        multimedia.pop('share_id')
+                        multimedia.pop('share_type')
+                        multimedia.pop('profile_id')
+                        post_multimedia.append(multimedia)
+                        print(post_multimedia)
+                for comment in comments:
+                    if 'share_id' in comment and share['id'] == comment['share_id']:
+                        comment.pop('share_id')
+                        comment.pop('share_type')
+                        post_comment.append(comment)
+                for like in likes:
+                    if 'share_id' in like and share['id'] == like['share_id']:
+                        like.pop('share_id')
+                        like.pop('share_type')
+                        post_like.append(like)
+                        if like['profile_id'] == profile_id:
+                            autoLike = True
+                share['multimedia'] = {"count": len(post_multimedia), "data": post_multimedia}
+                share['comments'] = {"count": len(post_comment), "data": post_comment}
+                share['likes'] = {"count": len(post_like), "data": post_like, "like": autoLike}
+                post.append(share)
+            if share['shareType'] == 'HISTORY':
+                post_multimedia = []
+                for multimedia in multimedias:
+                    if 'share_id' in multimedia and str(share['id']) == multimedia['share_id']:
+                        multimedia.pop('share_id')
+                        multimedia.pop('share_type')
+                        multimedia.pop('profile_id')
+                        post_multimedia.append(multimedia)
+                        print(post_multimedia)
+                share['multimedia'] = post_multimedia[0]
+                history.append(share)
+
+        print(history)
+
+        profile = []
+        data = []
+        for his in history:
+            if his['profileId'] not in profile:
+                profile.append(his['profileId'])
+                recuperado = list(dic for dic in history if dic['profileId'] == his['profileId'])
+                historys = []
+                for rec in recuperado:
+                    d = {
+                        'type':  rec['multimedia']['archive_type'],
+                        'content':  rec['multimedia']['archive_url'],
+                        'finish': 0
+                    }
+                    historys.append(d)
+
+                perfil = {
+                    'profileId': recuperado[0]['profileId'],
+                    'profileImage': recuperado[0]['profileImage'],
+                    'name': recuperado[0]['name'],
+                    'historys': historys,
+                    'description': recuperado[0]['text'],
+                    'id': recuperado[0]['id']
+                }
+                data.append(perfil)
+        return jsonify({
+            'POST': post,
+            'HISTORY': data
+        })
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500
     

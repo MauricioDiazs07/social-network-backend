@@ -16,6 +16,17 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 RESOURCES_PATH = 'src/resources/img/'
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] ='vision_key.json'
 
+
+def replaceChars(text):
+    text = text.replace("Á", "A")
+    text = text.replace("É", "E")
+    text = text.replace("Í", "I")
+    text = text.replace("Ó", "O")
+    text = text.replace("Ú", "U")
+
+    return text
+
+
 def allowed_file(filename: str) -> bool:
     return '.' in filename and \
         filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -76,7 +87,6 @@ def googleOCR():
     response = vision_client.text_detection(image=image)
     texts = proto.Message.to_json(response)
     mydict = json.loads(texts)
-    print(mydict['textAnnotations'][0]['description'].split("\n"))
 
     clean = []
     patron = re.compile('[0-9]{2}\/[0-9]{2}\/[0-9]{4}')
@@ -96,28 +106,30 @@ def googleOCR():
         else:
             clean.append(space)
 
-    out = {}
+    clean = [replaceChars(x) for x in clean]
 
+    out = {}
+    print(clean)
     for j in clean[clean.index('DOMICILIO') + 1:clean.index('CLAVE')]:
         if j.isdigit():
             cp = clean.index(j)
 
     try:
-        clean.index('EMISIÓN')
-        print('Viejita')
-        out['section'] = clean[clean.index('SECCIÓN') + 1]
+        clean.index('EMISION')
+        out['section'] = clean[clean.index('SECCION') + 1]
         out['municipality'] = clean[clean.index('MUNICIPIO') + 1]
         out['state'] = clean[clean.index('ESTADO') + 1]
     except:
         print("Nueva")
         patron3 = re.compile('^[0-9]{4}$')
-        todo = clean[clean.index('SECCIÓN'):]
+        todo = clean[clean.index('SECCION'):]
         me = " ".join(clean[cp + 1:clean.index('CLAVE')]).split(',')
         print(len(me))
         if (len(me) == 1):
             me = " ".join(clean[cp + 1:clean.index('CLAVE')]).split('.')
         
-        out['state'] = list(STATES.keys())[list(STATES.values()).index(".".join(me[1:]).strip())]
+        index = (list(STATES.values()).index(".".join(me[1:]).strip().replace(".","")))
+        out['state'] = list(STATES.keys())[index]
         out['municipality'] = list(MUNICIPALITIES[out['state']].keys())[list(MUNICIPALITIES[out['state']].values()).index(me[0])]
         
         for k in todo:
@@ -131,4 +143,5 @@ def googleOCR():
     out['birthday'] = cumple
     out['address'] = " ".join(clean[clean.index('DOMICILIO') + 1: cp + 1])
     
+    print(out)
     return jsonify(out)
