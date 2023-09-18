@@ -1,21 +1,19 @@
+import uuid
+import hashlib
 from flask import Blueprint, jsonify, request
 from src.models.entities.auth import Login, SignUp
 from src.models.AuthModel import AuthModel
 from src.utils.Security import Security
 from src.models.entities.multimedia import Multimedia
 from src.models.MultimediaModel import MultimediaModel
-import uuid
+from src.utils.AmazonS3 import upload_file_to_s3  
 from decouple import config
 from src.utils._support_functions import \
                                     format_date_to_DB, \
                                     getGender, \
                                     getState, \
                                     getMunicipality
-import hashlib
-from src.utils.AmazonS3 import \
-                            upload_file_to_s3, \
-                            delete_file_from_s3
-
+          
 main = Blueprint('auth_blueprint', __name__)
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -46,7 +44,7 @@ def login():
 @main.route('/signup', methods = ['POST'])
 def sign_up():
     try:
-        email = request.form['email']
+        phone = request.form['phone']
         password = request.form['password']
         name = request.form['name']
         gender = request.form['gender']
@@ -55,9 +53,9 @@ def sign_up():
         address = request.form['address']
         birthday = request.form['birthday']
         curp = request.form['curp']
-        phone = request.form['phone']
-        profile_id = hashlib.shake_256(email.encode('utf-8')).hexdigest(16)
-
+        email = request.form['email']
+        profile_id = hashlib.shake_256(phone.encode('utf-8')).hexdigest(16)
+        print("Input data")
         file = request.files['identification_photo']
         if file and allowed_file(file.filename):
             new_name = uuid.uuid4().hex + '.' + file.filename.rsplit('.',1)[1].lower()
@@ -65,23 +63,24 @@ def sign_up():
             identification_photo = 'https://{}.s3.{}.amazonaws.com/{}'.format(config('AWS_BUCKET_NAME'),config('REGION_NAME'),new_name)
             multimedia = Multimedia(profile_id,profile_id, 'IDENTIFICATION', identification_photo, file.filename.rsplit('.',1)[1].lower())
             MultimediaModel.create_multimedia(multimedia)
-
+        print("identification_photo")
         if 'profile_photo' in request.files:
             file = request.files['profile_photo']
             if file and allowed_file(file.filename):
                 new_name = uuid.uuid4().hex + '.' + file.filename.rsplit('.',1)[1].lower()
                 upload_file_to_s3(file,new_name)
                 profile_photo = 'https://{}.s3.{}.amazonaws.com/{}'.format(config('AWS_BUCKET_NAME'),config('REGION_NAME'),new_name)
-                multimedia = Multimedia(profile_id, 'PROFILE', profile_photo, file.filename.rsplit('.',1)[1].lower())
+                multimedia = Multimedia(profile_id, profile_id, 'PROFILE', profile_photo, file.filename.rsplit('.',1)[1].lower())
                 MultimediaModel.create_multimedia(multimedia)
         else:
             profile_photo = None
-
+        print("profile_photo")
         # process information for database
         birthday = format_date_to_DB(birthday)
         gender = getGender(gender)
         state = getState(state_id)
         municipality = getMunicipality(state_id, municipality_id)
+        print("convert")
         signup = SignUp(profile_id,email,password,name,gender,state,municipality,address,birthday,curp,identification_photo,phone,profile_photo)
         affected_row = AuthModel.signup(signup)
         if affected_row == 1:
@@ -94,4 +93,7 @@ def sign_up():
             return response, 500
         
     except Exception as ex:
+        MultimediaModel.delete_multimedia(profile_id)
+        if profile_id != None:
+            MultimediaModel.delete_multimedia(profile_id)
         return jsonify({'message': str(ex)}), 500
