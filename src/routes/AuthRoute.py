@@ -55,7 +55,7 @@ def sign_up():
         curp = request.form['curp']
         email = request.form['email']
         profile_id = hashlib.shake_256(phone.encode('utf-8')).hexdigest(16)
-        print("Input data")
+        
         file = request.files['identification_photo']
         if file and allowed_file(file.filename):
             new_name = uuid.uuid4().hex + '.' + file.filename.rsplit('.',1)[1].lower()
@@ -63,7 +63,7 @@ def sign_up():
             identification_photo = 'https://{}.s3.{}.amazonaws.com/{}'.format(config('AWS_BUCKET_NAME'),config('REGION_NAME'),new_name)
             multimedia = Multimedia(profile_id,profile_id, 'IDENTIFICATION', identification_photo, file.filename.rsplit('.',1)[1].lower())
             MultimediaModel.create_multimedia(multimedia)
-        print("identification_photo")
+        
         if 'profile_photo' in request.files:
             file = request.files['profile_photo']
             if file and allowed_file(file.filename):
@@ -74,13 +74,13 @@ def sign_up():
                 MultimediaModel.create_multimedia(multimedia)
         else:
             profile_photo = None
-        print("profile_photo")
+        
         # process information for database
         birthday = format_date_to_DB(birthday)
         gender = getGender(gender)
         state = getState(state_id)
         municipality = getMunicipality(state_id, municipality_id)
-        print("convert")
+        
         signup = SignUp(profile_id,email,password,name,gender,state,municipality,address,birthday,curp,identification_photo,phone,profile_photo)
         affected_row = AuthModel.signup(signup)
         if affected_row == 1:
