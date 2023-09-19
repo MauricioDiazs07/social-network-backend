@@ -91,7 +91,6 @@ def list_share():
         post = []
         history = []
         for share in shares:
-            print(share)
             if share['shareType'] == 'POST':
                 autoLike = False
                 post_multimedia = []
@@ -103,7 +102,6 @@ def list_share():
                         multimedia.pop('share_type')
                         multimedia.pop('profile_id')
                         post_multimedia.append(multimedia)
-                        print(post_multimedia)
                 for comment in comments:
                     if 'share_id' in comment and share['id'] == comment['share_id']:
                         comment.pop('share_id')
@@ -128,12 +126,8 @@ def list_share():
                         multimedia.pop('share_type')
                         multimedia.pop('profile_id')
                         post_multimedia.append(multimedia)
-                        print(post_multimedia)
                 share['multimedia'] = post_multimedia[0]
                 history.append(share)
-
-        print(history)
-
         profile = []
         data = []
         for his in history:

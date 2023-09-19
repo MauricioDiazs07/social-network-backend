@@ -55,6 +55,12 @@ def sign_up():
         curp = request.form['curp']
         email = request.form['email']
         profile_id = hashlib.shake_256(phone.encode('utf-8')).hexdigest(16)
+
+        # process information for database
+        birthday = format_date_to_DB(birthday)
+        gender = getGender(gender)
+        state = getState(state_id)
+        municipality = getMunicipality(state_id, municipality_id)
         
         file = request.files['identification_photo']
         if file and allowed_file(file.filename):
@@ -75,12 +81,6 @@ def sign_up():
         else:
             profile_photo = None
         
-        # process information for database
-        birthday = format_date_to_DB(birthday)
-        gender = getGender(gender)
-        state = getState(state_id)
-        municipality = getMunicipality(state_id, municipality_id)
-        
         signup = SignUp(profile_id,email,password,name,gender,state,municipality,address,birthday,curp,identification_photo,phone,profile_photo)
         affected_row = AuthModel.signup(signup)
         if affected_row == 1:
@@ -93,7 +93,7 @@ def sign_up():
             return response, 500
         
     except Exception as ex:
-        MultimediaModel.delete_multimedia(profile_id)
+        MultimediaModel.delete_multimedia(profile_id,'IDENTIFICATION')
         if profile_id != None:
-            MultimediaModel.delete_multimedia(profile_id)
+            MultimediaModel.delete_multimedia(profile_id,'PROFILE')
         return jsonify({'message': str(ex)}), 500

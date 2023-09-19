@@ -23,22 +23,28 @@ def update_users_data():
         email = request.form['email']
         phone_number = request.form['phone_number']
 
+        print('profile_id', profile_id)
+        print('email', email)
+        print('phone_number', phone_number)
+
         if 'profile_photo' in request.files:
             file = request.files['profile_photo']
             if file and allowed_file(file.filename):
-                multimedia = MultimediaModel.get_multimedia(profile_id)
-                for archive in multimedia:
-                    file_name = archive['archive_url'].split("/")[-1]
-                    delete_file_from_s3(file_name)
-                MultimediaModel.delete_multimedia(profile_id)
+                multimedia = MultimediaModel.get_multimedia(profile_id, 'PROFILE')
+                if len(multimedia) != 0:
+                    for archive in multimedia:
+                        file_name = archive['archive_url'].split("/")[-1]
+                        delete_file_from_s3(file_name)
+                    MultimediaModel.delete_multimedia(profile_id, 'PROFILE')
                 new_name = uuid.uuid4().hex + '.' + file.filename.rsplit('.',1)[1].lower()
                 upload_file_to_s3(file,new_name)
                 profile_photo = 'https://{}.s3.{}.amazonaws.com/{}'.format(config('AWS_BUCKET_NAME'),config('REGION_NAME'),new_name)
-                multimedia = Multimedia(profile_id, 'PROFILE', profile_photo, profile_photo.rsplit('.',1)[1].lower())
+                multimedia = Multimedia(profile_id,profile_id, 'PROFILE', profile_photo, profile_photo.rsplit('.',1)[1].lower())
                 MultimediaModel.create_multimedia(multimedia)
                 UsersModel.update_data_photo_user(profile_id,email,phone_number,profile_photo)
                 return jsonify({
-                    'message': 'OK'
+                    'message': 'OK',
+                    'profile_photo': profile_photo
                 })
         else:
             UsersModel.update_user(profile_id,email,phone_number)
@@ -46,6 +52,7 @@ def update_users_data():
                 'message': 'OK'
             })
     except Exception as ex:
+        print(ex)
         return jsonify({'message': str(ex)}), 500
 
 
@@ -58,3 +65,18 @@ def get_user_data(profile_id):
         return jsonify({'message': str(ex)}), 500
    
 
+@main.route('/<profile_id>', methods = ['DELETE'])
+def delete_user_data(profile_id):
+    try:
+        multimedia = MultimediaModel.get_all_multimedia_from_profile(profile_id)
+        print(multimedia)
+        for archive in multimedia:
+            file = archive['archive_url'].split("/")[-1]
+            delete_file_from_s3(file)
+        MultimediaModel.delete_all_multimedia(profile_id)
+        UsersModel.delete_user_data(profile_id)
+        return {
+            'message': 'OK'
+        }
+    except Exception as ex:
+        return jsonify({'message': str(ex)}), 500
