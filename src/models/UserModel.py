@@ -4,6 +4,7 @@ from .entities.user.User import User
 GET_USER_DATA = """ SELECT "NAME", "BIRTHDATE", "GENDER", "STATE", "MUNICIPALITY", "EMAIL", "PHONE_NUMBER", "PROFILE_PHOTO" FROM "T_USER_DATA" JOIN "T_PROFILE" ON "T_USER_DATA"."PROFILE_ID" = "T_PROFILE"."ID" WHERE "T_PROFILE"."ID" = %s """
 UPDATE_PHOTO = """ UPDATE "T_PROFILE" SET "EMAIL"= %s, "PHONE_NUMBER" = %s, "PROFILE_PHOTO" = %s WHERE  "ID" = %s; """
 UPDATE = """ UPDATE "T_PROFILE" SET "EMAIL"= %s, "PHONE_NUMBER" = %s WHERE  "ID" = %s; """
+GET_ID = """ SELECT "ID" FROM "T_PROFILE" WHERE "PHONE_NUMBER" = %s """
 
 
 DELETE_PROFILE = """ DELETE FROM "T_PROFILE" WHERE "ID" = %s """
@@ -53,7 +54,18 @@ class UsersModel():
             return user.to_JSON()
         except Exception as ex:
             raise Exception(ex)
-    
+        
+    @classmethod
+    def get_id_by_phone(self, phone):
+        try:
+            conn = get_connection()
+            with conn.cursor() as cur:
+                cur.execute(GET_ID, (phone,))
+                row = cur.fetchone()
+            conn.close()
+            return row
+        except Exception as ex:
+            raise Exception(ex)
 
     @classmethod
     def delete_user_data(self, profile_id):

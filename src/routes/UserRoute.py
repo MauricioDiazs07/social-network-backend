@@ -80,3 +80,24 @@ def delete_user_data(profile_id):
         }
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500
+
+
+
+
+@main.route('/phone/<phone>', methods = ['DELETE'])
+def delete_user_data_by_phone(phone):
+    try:
+        profile_id = UsersModel.get_id_by_phone(phone)
+        print(profile_id)
+        multimedia = MultimediaModel.get_all_multimedia_from_profile(profile_id)
+        print(multimedia)
+        for archive in multimedia:
+            file = archive['archive_url'].split("/")[-1]
+            delete_file_from_s3(file)
+        MultimediaModel.delete_all_multimedia(profile_id)
+        UsersModel.delete_user_data(profile_id)
+        return {
+            'message': 'OK'
+        }
+    except Exception as ex:
+        return jsonify({'message': str(ex)}), 500
