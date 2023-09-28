@@ -24,9 +24,9 @@ def allowed_file(filename):
 
 @main.route('/login', methods = ['POST'])
 def login():
-    email = request.json['email']
+    phone = request.json['phoneNumber']
     password = request.json['password']
-    login = Login(email, password)
+    login = Login(phone, password)
 
     authenticated_user = AuthModel.login(login)
     if (authenticated_user != None):
