@@ -1,7 +1,7 @@
 from src.database.db import get_connection
 from .entities.auth.AuthUser import AuthUser
 
-PROFILE_QUERY = """INSERT INTO "T_PROFILE" ("ID","EMAIL","PASSWORD","ROLE_ID","NAME","GENDER","PROFILE_PHOTO","PHONE_NUMBER") VALUES (%s,%s,%s,1,%s,%s,%s,%s)"""
+PROFILE_QUERY = """ INSERT INTO "T_PROFILE" ("ID","EMAIL","PASSWORD","ROLE_ID","NAME","GENDER","PROFILE_PHOTO","PHONE_NUMBER") VALUES (%s,%s,%s,1,%s,%s,%s,%s) """
 USER_QUERY = """ INSERT INTO "T_USER_DATA" ("PROFILE_ID","STATE","MUNICIPALITY","ADDRESS","BIRTHDATE","CURP","IDENTIFICATION_PHOTO") VALUES (%s,%s,%s,%s,%s,%s,%s) """
 LOGIN_QUERY = """ SELECT "ID", "EMAIL", "NAME", "ROLE_ID" FROM "T_PROFILE" WHERE "PHONE_NUMBER" = %s AND "PASSWORD" = %s"""
 
@@ -28,7 +28,9 @@ class AuthModel():
         try:
             conn = get_connection()
             with conn.cursor() as cur:
+                print("PROFILE")
                 cur.execute( PROFILE_QUERY, (signup.id,signup.email,signup.password, signup.name,signup.gender,signup.profile_photo,signup.phone))
+                print("USER")
                 cur.execute( USER_QUERY, (signup.id,signup.state,signup.municipality,signup.address,signup.birthdate,signup.curp,signup.identification_photo))
                 affected_row = cur.rowcount
                 conn.commit()
