@@ -17,6 +17,7 @@ resources/
 
 .env_aws
 inf_beta_key.pem
+influexqa_instance_key.pem
 resources/img/
 
 vision_key.json
