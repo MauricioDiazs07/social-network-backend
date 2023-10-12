@@ -21,7 +21,7 @@ class MultimediaModel():
                 cur.execute(GET_MULTIMEDIA, (share_id,share_type))
                 resultset = cur.fetchall()
                 for row in resultset:
-                    multimedia = MultimediaOut(row[0],row[1])
+                    multimedia = MultimediaOut(row[1],row[2])
                     multimedia_list.append(multimedia.to_JSON())
             return multimedia_list
         except Exception as ex:

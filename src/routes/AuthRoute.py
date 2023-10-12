@@ -26,6 +26,7 @@ def allowed_file(filename):
 def login():
     phone = request.json['phoneNumber']
     password = request.json['password']
+    print(phone, password)
     login = Login(phone, password)
     print('Login',login.to_JSON())
     authenticated_user = AuthModel.login(login)

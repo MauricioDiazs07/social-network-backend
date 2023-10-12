@@ -202,15 +202,19 @@ def list_share_from_profile(profile_id):
 
 
 
-@main.route('/delete/<share_id>', methods = ['DELETE'])
-def delete_share(share_id):
+@main.route('/delete', methods = ['DELETE'])
+def delete_share():
     try:
+        share_id = request.json['shareId']
+        share_type = request.json['shareType']
         ShareModel.delete_share(share_id)
-        multimedia = MultimediaModel.get_multimedia(share_id)
+        multimedia = MultimediaModel.get_multimedia(share_id,share_type)
+        print(multimedia)
         for archive in multimedia:
             file = archive['archive_url'].split("/")[-1]
+            print(file)
             delete_file_from_s3(file)
-        MultimediaModel.delete_multimedia(share_id)
+        MultimediaModel.delete_multimedia(share_id,share_type)
         InteractionModel.delete_all_comments(share_id)
         InteractionModel.delete_all_likes(share_id)
         return jsonify({
