@@ -1,35 +1,47 @@
 from flask import Blueprint, jsonify, request
 from src.models.DataModel import DataModel
-from decouple import config
+import datetime
 
 main = Blueprint('data_blueprint', __name__)
-
 
 @main.route('/',  methods = ['GET'])
 def update_users_data():
     try:
         interests = DataModel.get_interest()
-        print(interests)
-        interests_count = {"1":0,"2":0,"3":0,"4":0,"5":0,"6":0,"7":0 }
-        for interest in interests:
-            print(interest)
-            if interest == 1:
-                interests_count["1"] = interests_count["1"] + 1
-            elif interest == 2:
-                interests_count["2"] = interests_count["2"] + 1
-            elif interest == 3:
-                interests_count["3"] = interests_count["3"] + 1
-            elif interest == 4:
-                interests_count["4"] = interests_count["4"] + 1
-            elif interest == 5:
-                interests_count["5"] = interests_count["5"] + 1
-            elif interest == 6:
-                interests_count["6"] = interests_count["6"] + 1
-            elif interest == 7:
-                interests_count["7"] = interests_count["7"] + 1
+        genders = DataModel.get_gender()
+        birthdates, seccion = DataModel.get_birthdate_and_seccion()
 
+        ages = calculate_ages(birthdates)
+
+        interests_count = count_data(interests)
+        gender_count = count_data(genders)
+        seccion_count = count_data(seccion)
+        ages_count = count_data(ages)
+        
         return jsonify({
-            'interests': interests_count        
+            'interests': interests_count,
+            'gender': gender_count,
+            'seccion': seccion_count,
+            'age': ages_count
         })
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500
+
+
+def count_data(array):
+    data_count = {}
+    for element in array:
+        if element != None:
+            if element in data_count:
+                data_count[element] += 1
+            else:
+                data_count[element] = 1
+    return data_count
+
+def calculate_ages(birthdates):
+    today = datetime.date.today()
+    ages = []
+    for birthdate in birthdates:
+        age = today.year - birthdate.year - ((today.month, today.day) < (birthdate.month, birthdate.day))
+        ages.append(age)
+    return ages;
