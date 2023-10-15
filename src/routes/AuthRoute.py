@@ -86,6 +86,7 @@ def sign_up():
             profile_photo = None
         print("5")
         signup = SignUp(profile_id,email,password,name,gender,state,municipality,address,birthday,curp,identification_photo,phone,profile_photo)
+        print("6")
         print(signup.to_JSON())
         affected_row = AuthModel.signup(signup)
         print("7")
