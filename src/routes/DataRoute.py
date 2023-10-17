@@ -11,23 +11,23 @@ def all_data():
     try:
         interests = DataModel.get_interest()
         genders = DataModel.get_gender()
-        birthdates, seccion = DataModel.get_birthdate_and_seccion()
+        birthdates, section = DataModel.get_birthdate_and_section()
         interest_all = InterestModel.get_all()
-        print(seccion)
+        print(section)
         ages = calculate_ages(birthdates)
         ages_classified = classified_ages(ages)
         interests_count = count_data(interests)
         interest_count_des = add_count(interests_count,interest_all)
 
         gender_count = count_data(genders)
-        seccion_count = count_data(seccion)
+        section_count = count_data(section)
 
         return jsonify({
             'interests': interest_count_des,
             'gender': gender_count,
-            'seccion': {
-                'array': seccion,
-                "count": seccion_count
+            'section': {
+                'array': section,
+                "count": section_count
             },
             'age': ages_classified
         })
@@ -35,11 +35,11 @@ def all_data():
         return jsonify({'message': str(ex)}), 500
 
 
-@main.route('/seccion/<seccion>',  methods=['GET'])
-def seccion_data(seccion):
+@main.route('/section/<section>',  methods=['GET'])
+def seccion_data(section):
     try:
         interest_all = InterestModel.get_all()
-        interests = DataModel.get_interests_by_seccion(seccion)
+        interests = DataModel.get_interests_by_section(section)
         interests_count = count_data(interests)
         interest_count_des = add_count(interests_count,interest_all)
         
@@ -54,12 +54,12 @@ def seccion_data(seccion):
 @main.route('/interest/<interest_id>',  methods=['GET'])
 def interest_data(interest_id):
     try:
-        seccion = DataModel.get_seccions_by_interest_id(interest_id)
-        print(seccion)
-        seccion_count = count_data(seccion)
+        section = DataModel.get_sections_by_interest_id(interest_id)
+        print(section)
+        section_count = count_data(section)
 
         return jsonify({
-            'seccion_count': seccion_count
+            'seccion_count': section_count
         })
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500
