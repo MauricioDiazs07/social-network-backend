@@ -56,6 +56,7 @@ def sign_up():
         birthday = request.form['birthday']
         curp = request.form['curp']
         email = request.form['email']
+        section = request.form['section']
         if email == '':
             email = None
         profile_id = hashlib.shake_256(phone.encode('utf-8')).hexdigest(16)
@@ -85,7 +86,7 @@ def sign_up():
         else:
             profile_photo = None
         print("5")
-        signup = SignUp(profile_id,email,password,name,gender,state,municipality,address,birthday,curp,identification_photo,phone,profile_photo)
+        signup = SignUp(profile_id,email,password,name,gender,state,municipality,address,birthday,curp,identification_photo,phone,profile_photo,section)
         print(signup.to_JSON())
         affected_row = AuthModel.signup(signup)
         print("7")
