@@ -7,14 +7,13 @@ main = Blueprint('data_blueprint', __name__)
 
 
 @main.route('/',  methods=['GET'])
-def update_users_data():
+def all_data():
     try:
         interests = DataModel.get_interest()
         genders = DataModel.get_gender()
         birthdates, seccion = DataModel.get_birthdate_and_seccion()
         interest_all = InterestModel.get_all()
-        print(interest_all)
-
+        print(seccion)
         ages = calculate_ages(birthdates)
         ages_classified = classified_ages(ages)
         interests_count = count_data(interests)
@@ -22,19 +21,52 @@ def update_users_data():
 
         gender_count = count_data(genders)
         seccion_count = count_data(seccion)
-        ages_count = count_data(ages)
 
         return jsonify({
             'interests': interest_count_des,
             'gender': gender_count,
-            'seccion': seccion_count,
-            'age': {
-                'classified': ages_classified,
-                "data": ages_count
-            }
+            'seccion': {
+                'array': seccion,
+                "count": seccion_count
+            },
+            'age': ages_classified
         })
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500
+
+
+@main.route('/seccion/<seccion>',  methods=['GET'])
+def seccion_data(seccion):
+    try:
+        interest_all = InterestModel.get_all()
+        interests = DataModel.get_interests_by_seccion(seccion)
+        interests_count = count_data(interests)
+        interest_count_des = add_count(interests_count,interest_all)
+        
+        return jsonify({
+            'interests': interest_count_des
+        })
+    except Exception as ex:
+        return jsonify({'message': str(ex)}), 500
+    
+
+
+@main.route('/interest/<interest_id>',  methods=['GET'])
+def interest_data(interest_id):
+    try:
+        seccion = DataModel.get_seccions_by_interest_id(interest_id)
+        print(seccion)
+        seccion_count = count_data(seccion)
+
+        return jsonify({
+            'seccion_count': seccion_count
+        })
+    except Exception as ex:
+        return jsonify({'message': str(ex)}), 500
+
+
+
+
 
 
 def count_data(array):
@@ -57,7 +89,6 @@ def add_count(interests_count,interest_all):
         else:
             interest['count'] = 0
             data.append(interest)
-    print(data)
     return data
 
 def calculate_ages(birthdates):
