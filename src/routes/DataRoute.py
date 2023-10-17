@@ -5,29 +5,32 @@ import datetime
 
 main = Blueprint('data_blueprint', __name__)
 
-
 @main.route('/',  methods=['GET'])
 def all_data():
     try:
         interests = DataModel.get_interest()
-        genders = DataModel.get_gender()
-        birthdates, section = DataModel.get_birthdate_and_section()
         interest_all = InterestModel.get_all()
-        print(section)
-        ages = calculate_ages(birthdates)
-        ages_classified = classified_ages(ages)
         interests_count = count_data(interests)
         interest_count_des = add_count(interests_count,interest_all)
+        interest_data = rename_interest(interest_count_des)
 
-        gender_count = count_data(genders)
-        section_count = count_data(section)
+        genders = DataModel.get_gender()
+        gender_count = create_object_data(genders)
+
+        birthdates, section = DataModel.get_birthdate_and_section()
+        ages_classified = classified_ages(birthdates)
+        section_count = create_object_data_sorted(section)
 
         return jsonify({
-            'interests': interest_count_des,
+            'interests': {
+                'array': [dicc['marker'] for dicc in interest_data],
+                'data': interest_data
+            },
             'gender': gender_count,
             'section': {
-                'array': section,
-                "count": section_count
+                # Ordenar
+                'array': sorted(section),
+                "data": section_count
             },
             'age': ages_classified
         })
@@ -38,13 +41,15 @@ def all_data():
 @main.route('/section/<section>',  methods=['GET'])
 def seccion_data(section):
     try:
-        interest_all = InterestModel.get_all()
+
         interests = DataModel.get_interests_by_section(section)
+        interest_all = InterestModel.get_all()
         interests_count = count_data(interests)
         interest_count_des = add_count(interests_count,interest_all)
+        interest_data = rename_interest(interest_count_des)
         
         return jsonify({
-            'interests': interest_count_des
+            'interests': interest_data
         })
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500
@@ -55,8 +60,7 @@ def seccion_data(section):
 def interest_data(interest_id):
     try:
         section = DataModel.get_sections_by_interest_id(interest_id)
-        print(section)
-        section_count = count_data(section)
+        section_count = create_object_data_sorted(section)
 
         return jsonify({
             'seccion_count': section_count
@@ -65,9 +69,46 @@ def interest_data(interest_id):
         return jsonify({'message': str(ex)}), 500
 
 
+def create_object_data(array):
+    data_count = {}
+    for element in array:
+        if element != None:
+            if element in data_count:
+                data_count[element] += 1
+            else:
+                data_count[element] = 1
+
+    list_dicc= [{"label": clave, "value": valor} for clave, valor in data_count.items()]
+    return list_dicc
+
+def create_object_data_sorted(array):
+    data_count = {}
+    for element in array:
+        if element != None:
+            if element in data_count:
+                data_count[element] += 1
+            else:
+                data_count[element] = 1
+
+    list_dicc= [{"marker": clave, "y": valor} for clave, valor in data_count.items()]
+    list_dicc_sorted = sorted(list_dicc, key=lambda x: int(x["marker"]))
+
+    for indice, diccionario in enumerate(list_dicc_sorted):
+        diccionario["x"] = indice
+
+    return list_dicc_sorted
 
 
-
+def rename_interest(interest_count_des):
+    data = []
+    for interest in interest_count_des:
+        obj = {
+            'y': interest['count'],
+            'x': interest['id'] - 1,
+            'marker': interest['description']
+               }
+        data.append(obj)
+    return data
 
 def count_data(array):
     data_count = {}
@@ -91,17 +132,15 @@ def add_count(interests_count,interest_all):
             data.append(interest)
     return data
 
-def calculate_ages(birthdates):
+def classified_ages(birthdates):
+
     today = datetime.date.today()
     ages = []
     for birthdate in birthdates:
         age = today.year - birthdate.year - \
             ((today.month, today.day) < (birthdate.month, birthdate.day))
         ages.append(age)
-    return ages
 
-
-def classified_ages(ages):
     data = {
         "Menor o igual 10 años": 0,
         "11 - 20 años": 0,
@@ -134,4 +173,9 @@ def classified_ages(ages):
         elif age >= 81:
             data["Mayor 80 años"] += 1
 
-    return data
+    list_dicc= [{"marker ": clave, "y": valor} for clave, valor in data.items()]
+
+    for indice, diccionario in enumerate(list_dicc):
+        diccionario["x"] = indice
+
+    return list_dicc
