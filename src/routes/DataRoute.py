@@ -63,7 +63,7 @@ def interest_data(interest_id):
         section_count = create_object_data_sorted(section)
 
         return jsonify({
-            'seccion_count': section_count
+            'section': section_count
         })
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500
