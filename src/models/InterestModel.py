@@ -13,17 +13,17 @@ class InterestModel():
     def get_all(self):
         try:
             conn = get_connection()
-            users = []
+            interest = []
             with conn.cursor() as cur:
                 cur.execute(ALL_INTERESTS_QUERY)
                 resultset = cur.fetchall()
 
                 for row in resultset:
                     user = Catalogue(row[0],row[1])
-                    users.append(user.to_JSON())
+                    interest.append(user.to_JSON())
 
             conn.close()
-            return users
+            return interest
         except Exception as ex:
             raise Exception(ex)
         
