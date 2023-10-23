@@ -5,6 +5,7 @@ from src.models.MultimediaModel import MultimediaModel
 from src.models.InteractionModel import InteractionModel
 from src.models.entities.share import CreateShare
 from src.models.entities.multimedia import Multimedia
+from src.models.InterestModel import InterestModel
 from src.utils._support_functions import reformatCreatedDate
 import uuid
 from decouple import config
@@ -30,8 +31,15 @@ def create_share():
         profile_id = request.form['profile_id']
         description = request.form['description']
         share_type = request.form['share_type']
+        share_interest = request.form['interests'].split(";")
         share = CreateShare(profile_id, share_type, description)
         share_id = ShareModel.create_share(share)
+
+        values = []
+        if len(share_interest) > 0:
+            for interest_value in share_interest:
+                values.append((share_id, interest_value))
+            InterestModel.add_share_interests(values)
        
         if len(request.files) > 0:
             for fileitem in request.files:
@@ -58,20 +66,27 @@ def update_share():
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500
 
-@main.route('/get/<share_id>', methods = ['GET'])
-def get_share(share_id):
+@main.route('/get', methods = ['GET'])
+def get_share():
     try:
+        share_id = str(request.json['share_id'])
+        share_type = request.json['share_type']
         share = ShareModel.get_share(share_id)
+        print(share)
         if share == None:
             return {"message": "Share not fount"}
-        multimedia = MultimediaModel.get_multimedia(share_id)
+        multimedia = MultimediaModel.get_multimedia(share_id,share_type)
+        print(multimedia)
         comment = InteractionModel.get_comment(share_id)
         likes = InteractionModel.get_likes(share_id)
+        interest = InterestModel.get_share_interests(share_id)
+        print(interest)
         autolike = False
         for like in likes:
             if like['profile_id'] == share['profileId']:
                 autolike = True
                 break
+        share['interest'] = interest
         share['multimedia'] = {"count": len(multimedia), "data": multimedia}
         share['comments'] = {"count": len(comment), "data": comment}
         share['likes'] = {"count": len(likes), "data": likes, "like": autolike}
@@ -88,6 +103,7 @@ def list_share():
         multimedias = MultimediaModel.get_all_multimedia()
         comments = InteractionModel.get_all_comments()
         likes = InteractionModel.get_all_likes()
+        interests = InterestModel.get_all_share_interests()
         post = []
         history = []
         for share in shares:
@@ -96,6 +112,10 @@ def list_share():
                 post_multimedia = []
                 post_comment = []
                 post_like = []
+                post_interest = []
+                for interest in interests:
+                    if 'share_id' in interest and str(share['id']) == str(interest['share_id']):
+                        post_interest.append(interest['id'])
                 for multimedia in multimedias:
                     if 'share_id' in multimedia and str(share['id']) == multimedia['share_id']:
                         multimedia.pop('share_id')
@@ -117,6 +137,7 @@ def list_share():
                 share['multimedia'] = {"count": len(post_multimedia), "data": post_multimedia}
                 share['comments'] = {"count": len(post_comment), "data": post_comment}
                 share['likes'] = {"count": len(post_like), "data": post_like, "like": autoLike}
+                share['interest'] = post_interest
                 post.append(share)
             if share['shareType'] == 'HISTORY':
                 post_multimedia = []
