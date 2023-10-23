@@ -70,7 +70,10 @@ def interest_data(interest_id):
 
 
 def create_object_data(array):
-    data_count = {}
+    data_count = {
+        "M": 0,
+        "H": 0
+    }
     for element in array:
         if element != None:
             if element in data_count:
