@@ -145,40 +145,38 @@ def classified_ages(birthdates):
         ages.append(age)
 
     data = {
-        "Menor o igual 10 años": 0,
-        "11 - 20 años": 0,
-        "21 - 30 años": 0,
-        "31 - 40 años": 0,
-        "41 - 50 años": 0,
-        "51 - 60 años": 0,
-        "61 - 70 años": 0,
-        "71 - 80 años": 0,
-        "Mayor 80 años": 0
+        "Menor o igual 10": 0,
+        "11 - 20": 0,
+        "21 - 30": 0,
+        "31 - 40": 0,
+        "41 - 50": 0,
+        "51 - 60": 0,
+        "61 - 70": 0,
+        "71 - 80": 0,
+        "Mayor 80": 0
     }
 
     for age in ages:
         if age < 10:
-            data["Menores 10 años"] += 1
+            data["Menor o igual 10"] += 1
         elif age >= 11 and age <= 20:
-            data["11 - 20 años"] += 1
+            data["11 - 20"] += 1
         elif age >= 21 and age <= 30:
-            data["21 - 30 años"] += 1
+            data["21 - 30"] += 1
         elif age >= 31 and age <= 40:
-            data["31 - 40 años"] += 1
+            data["31 - 40"] += 1
         elif age >= 41 and age <= 50:
-            data["41 - 50 años"] += 1
+            data["41 - 50"] += 1
         elif age >= 51 and age <= 60:
-            data["51 - 60 años"] += 1
+            data["51 - 60"] += 1
         elif age >= 61 and age <= 70:
-            data["61 - 70 años"] += 1
+            data["61 - 70"] += 1
         elif age >= 71 and age <= 80:
-            data["71 - 80 años"] += 1
+            data["71 - 80"] += 1
         elif age >= 81:
-            data["Mayor 80 años"] += 1
+            data["Mayor 80"] += 1
 
     list_dicc= [{"marker ": clave, "y": valor} for clave, valor in data.items()]
-
     for indice, diccionario in enumerate(list_dicc):
         diccionario["x"] = indice
-
     return list_dicc
