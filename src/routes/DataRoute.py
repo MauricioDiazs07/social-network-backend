@@ -176,7 +176,7 @@ def classified_ages(birthdates):
         elif age >= 81:
             data["Mayor 80"] += 1
 
-    list_dicc= [{"marker ": clave, "y": valor} for clave, valor in data.items()]
+    list_dicc= [{"marker": clave, "y": valor} for clave, valor in data.items()]
     for indice, diccionario in enumerate(list_dicc):
         diccionario["x"] = indice
     return list_dicc
