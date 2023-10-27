@@ -3,6 +3,7 @@ from src.models.UserModel import UsersModel
 from src.models.entities.multimedia import Multimedia
 from src.models.MultimediaModel import MultimediaModel
 import uuid
+import hashlib
 from decouple import config
 from src.utils.AmazonS3 import \
                             upload_file_to_s3, \
@@ -22,10 +23,6 @@ def update_users_data():
         profile_id = request.form['profile_id']
         email = request.form['email']
         phone_number = request.form['phone_number']
-
-        print('profile_id', profile_id)
-        print('email', email)
-        print('phone_number', phone_number)
 
         if 'profile_photo' in request.files:
             file = request.files['profile_photo']
@@ -63,7 +60,7 @@ def get_user_data(profile_id):
         return jsonify(user)
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500
-   
+
 
 @main.route('/<profile_id>', methods = ['DELETE'])
 def delete_user_data(profile_id):
@@ -82,15 +79,11 @@ def delete_user_data(profile_id):
         return jsonify({'message': str(ex)}), 500
 
 
-
-
 @main.route('/phone/<phone>', methods = ['DELETE'])
 def delete_user_data_by_phone(phone):
     try:
         profile_id = UsersModel.get_id_by_phone(phone)
-        print(profile_id)
         multimedia = MultimediaModel.get_all_multimedia_from_profile(profile_id)
-        print(multimedia)
         for archive in multimedia:
             file = archive['archive_url'].split("/")[-1]
             delete_file_from_s3(file)
@@ -99,5 +92,36 @@ def delete_user_data_by_phone(phone):
         return {
             'message': 'OK'
         }
+    except Exception as ex:
+        return jsonify({'message': str(ex)}), 500
+ 
+
+@main.route('/password', methods = ['PATCH'])
+def update_password():
+    try:
+        profileId = request.json['profileId']
+        pre_password = request.json['password']
+        password = hashlib.shake_256(pre_password.encode('utf-8')).hexdigest(16)
+        affected_row = UsersModel.update_password(password,profileId)
+        if affected_row == 1:
+            return {
+                'message': 'OK'
+            }
+        else:
+            return jsonify({'message': "User not found"}), 500
+    except Exception as ex:
+        return jsonify({'message': str(ex)}), 500
+    
+
+@main.route('/phone/<phone>', methods = ['GET'])
+def search_user_by_phone(phone):
+    try:
+        profile_id = UsersModel.get_id_by_phone(phone)
+        if profile_id != None:
+            return {
+                'profileId': profile_id[0]
+            }
+        else:
+            return jsonify({'message': "User not found"}), 500
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500

@@ -5,7 +5,7 @@ GET_USER_DATA = """ SELECT "NAME", "BIRTHDATE", "GENDER", "STATE", "MUNICIPALITY
 UPDATE_PHOTO = """ UPDATE "T_PROFILE" SET "EMAIL"= %s, "PHONE_NUMBER" = %s, "PROFILE_PHOTO" = %s WHERE  "ID" = %s; """
 UPDATE = """ UPDATE "T_PROFILE" SET "EMAIL"= %s, "PHONE_NUMBER" = %s WHERE  "ID" = %s; """
 GET_ID = """ SELECT "ID" FROM "T_PROFILE" WHERE "PHONE_NUMBER" = %s """
-
+UPDATE_PASSWORD = """ UPDATE "T_PROFILE" SET "PASSWORD" = %s WHERE "ID" = %s """
 
 DELETE_PROFILE = """ DELETE FROM "T_PROFILE" WHERE "ID" = %s """
 DELETE_USER = """ DELETE FROM "T_USER_DATA" WHERE "PROFILE_ID" = %s """
@@ -78,6 +78,19 @@ class UsersModel():
                 cur.execute(DELETE_COMMENT, (profile_id,))
                 cur.execute(DELETE_SHARE, (profile_id,))
                 cur.execute(DELETE_PROFILE, (profile_id,))
+                affected_row = cur.rowcount
+                conn.commit()
+            conn.close()
+            return affected_row
+        except Exception as ex:
+            raise Exception(ex)
+        
+    @classmethod
+    def update_password(self, password, profileId):
+        try:
+            conn = get_connection()
+            with conn.cursor() as cur:
+                cur.execute(UPDATE_PASSWORD, (password,profileId))
                 affected_row = cur.rowcount
                 conn.commit()
             conn.close()
