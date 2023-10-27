@@ -25,7 +25,8 @@ def allowed_file(filename):
 @main.route('/login', methods = ['POST'])
 def login():
     phone = request.json['phoneNumber']
-    password = request.json['password']
+    pre_password = request.json['password']
+    password = hashlib.shake_256(pre_password.encode('utf-8')).hexdigest(16)
     print(phone, password)
     login = Login(phone, password)
     print('Login',login.to_JSON())
@@ -46,7 +47,8 @@ def login():
 def sign_up():
     try:
         phone = request.form['phone']
-        password = request.form['password']
+        pre_password = request.form['password']
+        password = hashlib.shake_256(pre_password.encode('utf-8')).hexdigest(16)
         name = request.form['name']
         gender = request.form['gender']
         state_id = request.form['state']
