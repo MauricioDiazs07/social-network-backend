@@ -4,9 +4,11 @@ from src.models.entities.interest.Interest import Interest
 
 ALL_INTERESTS_QUERY = """ SELECT * FROM "T_CATALOGUE_INTEREST" """
 ADD_INTEREST = """ INSERT INTO "T_USER_INTEREST" ("PROFILE_ID","INTEREST_ID") VALUES """
+ADD_SHARE_INTEREST = """ INSERT INTO "T_SHARE_INTEREST" ("SHARE_ID","INTEREST_ID") VALUES """
 CLEAN_INTEREST = """ DELETE FROM "T_USER_INTEREST" WHERE "PROFILE_ID" = '{}' """
 GET_INTEREST = """ SELECT "INTEREST_ID", "DESCRIPTION" FROM "T_USER_INTEREST" INNER JOIN "T_CATALOGUE_INTEREST" ON "T_USER_INTEREST"."INTEREST_ID" = "T_CATALOGUE_INTEREST"."ID" WHERE "PROFILE_ID" = '{}' """
-
+GET_SHARE_INTEREST = """ SELECT * FROM "T_SHARE_INTEREST" """
+GET_ALL_SHARE_INTEREST = """ SELECT * FROM "T_SHARE_INTEREST" """
 class InterestModel():
 
     @classmethod
@@ -42,6 +44,20 @@ class InterestModel():
             raise Exception(ex)
     
     @classmethod
+    def add_share_interests(self, interests):
+        try:
+            conn = get_connection()
+            with conn.cursor() as cur:
+                argument_string = ",".join("('%s', '%s')" % (x, y) for (x, y) in interests)
+                cur.execute(ADD_SHARE_INTEREST + argument_string )
+                affected_row = cur.rowcount
+                conn.commit()
+            conn.close()
+            return affected_row
+        except Exception as ex:
+            raise Exception(ex)
+    
+    @classmethod
     def clean_interests(self, profile_id):
         try:
             conn = get_connection()
@@ -69,5 +85,36 @@ class InterestModel():
             conn.close()
             data = {"profile_id": profile_id, "interest_list": interest_list}
             return data
+        except Exception as ex:
+            raise Exception(ex)
+        
+    @classmethod
+    def get_share_interests(self, share_id):
+        try:
+            conn = get_connection()
+            interest_list = []
+            with conn.cursor() as cur:
+                cur.execute(GET_SHARE_INTEREST, (share_id,))
+                resultset = cur.fetchall()
+                for row in resultset:
+                    interest = Interest(row[0],row[1])
+                    interest_list.append(interest.to_JSON())
+            conn.close()
+            return interest_list
+        except Exception as ex:
+            raise Exception(ex)
+        
+    @classmethod
+    def get_all_share_interests(self):
+        try:
+            conn = get_connection()
+            interest_list = []
+            with conn.cursor() as cur:
+                cur.execute(GET_ALL_SHARE_INTEREST)
+                resultset = cur.fetchall()
+                for row in resultset:
+                    interest_list.append({"share_id":row[0], "id": row[1]})
+            conn.close()
+            return interest_list
         except Exception as ex:
             raise Exception(ex)
