@@ -1,30 +1,50 @@
 from src.models.entities.auth.INEInfo import INEInfo
-from src.utils._support_functions import format_date_to_front, format_date_to_DB
+from src.utils._support_functions import format_date_to_front,\
+                                         preprocessText, \
+                                         validateCURP, \
+                                         validateGender, \
+                                         validateCode
 from typing import Dict
 from PIL import Image
 import pickle
 import shutil
 
 MODEL_PATH = 'src/resources/models/model_read.pkl'
+img_names = {
+    "header": "INE-cabecera.png",
+    "state": "INE-estado.png",
+    "name": "INE-nombre.png",
+    "address": "INE-domicilio.png",
+    "birthDate": "INE-fechaDeNacimiento.png",
+    "curp": "INE-curp.png",
+    "gender": "INE-genero.png",
+    "municipality": "INE-municipio.png",
+    "section": "INE-seccion.png",
+    "others": "INE-otros.png"
+}
+pos = {
+    "old": {
+        "name": [0.28, 0.26, 0.7, 0.46],
+        "address": [0.30, 0.44, 0.825, 0.69],
+        "birthDate": [0.76, 0.28, 0.98, 0.365],
+        "curp": [0.29, 0.705, 0.68, 0.79],
+        "gender": [0.91, 0.33, 0.97, 0.445],
+        "municipality": [0.615, 0.76, 0.70, 0.84],
+        "section": [0.68, 0.75, 0.87, 0.83],
+    },
+    "new": {
+        "name": [0.28, 0.26, 0.7, 0.52],
+        "address": [0.30, 0.49, 0.825, 0.705],
+        "birthDate": [0.30, 0.84, 0.57, 0.96],
+        "curp": [0.30, 0.74, 0.67, 0.855],
+        "gender": [0.83, 0.25, 0.98, 0.38],
+        "municipality": [0.615, 0.76, 0.70, 0.84],
+        "section": [0.68, 0.75, 0.87, 0.83],
+    }
+}
 
 with open(MODEL_PATH, 'rb') as f:
-        reader2 = pickle.load(f)
-
-def validCredential(
-        width: int,
-        height: int,
-        path: str,
-        INE
-    ) -> bool:
-    cabeceraRecorte = INE.crop((width*0.0, height*0.0, width*1.0, height*0.5))
-    cabeceraRecorte.save(path + "INE-cabecera.png")
-
-    result = reader2.readtext(path + "INE-cabecera.png", detail = 0)
-    for element in result:
-        if "INSTITUTO" in element or "NACIONAL" in element or "ELECTORAL" in element:
-            return True
-        
-    return False
+    reader2 = pickle.load(f)
 
 def saveCropCredential(
         c_width_start: float,
@@ -37,8 +57,43 @@ def saveCropCredential(
     ) -> None:
     INE.crop((c_width_start, c_height_start, c_width_end, c_height_end)) \
         .save(path + file_name)
+
+def validCredential(
+        width: int,
+        height: int,
+        path: str,
+        INE
+    ) -> bool:
+    """
+        Checks if the lecture of the credential has information
+
+        Inputs:
+            width: width of the image
+            height: height of the image
+            path: path of the img resources
+            INE: image
+
+        Outputs:
+            boolean - True if the lecture has information, otherwise, False
+        
+    """
+    saveCropCredential(width*0.0, height*0.0, width*1.0, height*0.5, path, img_names['header'], INE)
+    result = reader2.readtext(path + img_names['header'], detail = 0)
+
+    for element in result:
+        if "INSTITUTO" in element or "NACIONAL" in element or "ELECTORAL" in element:
+            return True
+        
+    return False
     
 def removeFolder(path: str) -> None:
+    """
+        Removes a folder from system
+
+        Inputs:
+            path: path of the folder
+        
+    """
     try:
         shutil.rmtree(path)
     except Exception as ex:
@@ -50,8 +105,21 @@ def getState(
         path: str,
         INE
 ) -> str:
-    saveCropCredential(width*0.30, height*0.78, width*0.50, height*0.9, path, "INE-estado.png", INE)
-    estado = reader2.readtext(path + f"INE-estado.png", detail = 0)
+    """
+        Gets the state from the credential
+
+        Inputs:
+            width: width of the image
+            height: height of the image
+            path: path of the img resources
+            INE: image
+
+        Outputs:
+            str - state code from credential
+        
+    """
+    saveCropCredential(width*0.30, height*0.78, width*0.50, height*0.9, path, img_names['state'], INE)
+    estado = reader2.readtext(path + img_names['state'], detail = 0)
     try:
         estado = estado[-1]
         estado_id = estado
@@ -60,15 +128,107 @@ def getState(
     except Exception as ex:
         print(ex)
         return "", ""
+    
+def readField(
+        path: str,
+        file_name: str
+) -> str:
+    """
+        read an specific field of the credential
+
+        Inputs:
+            path: path of the img resources
+            file_name: name of the file
+
+        Outputs:
+            str - 
+    """
+    text_ = reader2.readtext(path + file_name, detail = 0)
+    print(file_name, text_)
+
+    if (type(text_) == list):
+        text_ = " ".join(text_).upper()
+
+    if (file_name == img_names['gender']):
+        text_ = validateGender(text_)
+
+    if (file_name == img_names['state']):
+        text_ = validateCode(text_, reps=2)
+    
+    if (file_name == img_names['municipality']):
+        text_ = validateCode(text_, reps=3)
+
+    if (file_name == img_names['section']):
+        text_ = validateCode(text_, reps=4)
+
+    return preprocessText(text_)
+    
+def extractInformation(
+        width: str,
+        height: str,
+        path: str,
+        pos: Dict,
+        INE
+) -> str:
+    """
+        Crops the INE img and extracts the information by parts
+
+        Inputs:
+            width: width of the image
+            height: height of the image
+            path: path of the img resources
+            INE: image
+
+        Outputs:
+            boolean - True if the lecture has information, otherwise, False
+        
+    """
+    saveCropCredential(width*pos['name'][0], height*pos['name'][1], width*pos['name'][2], height*pos['name'][3], path, img_names['name'], INE)
+    nombre = readField(path, img_names['name'])
+    
+    saveCropCredential(width*pos['address'][0], height*pos['address'][1], width*pos['address'][2], height*pos['address'][3], path, img_names['address'], INE)
+    domicilio = readField(path, img_names['address'])
+
+    saveCropCredential(width*pos['birthDate'][0], height*pos['birthDate'][1], width*pos['birthDate'][2], height*pos['birthDate'][3], path, img_names['birthDate'], INE)
+    fechaDeNacimiento = readField(path, img_names['birthDate'])
+    
+    saveCropCredential(width*pos['curp'][0], height*pos['curp'][1], width*pos['curp'][2], height*pos['curp'][3], path, img_names['curp'], INE)
+    curp = readField(path, img_names['curp'])
+    curp = validateCURP(curp, fechaDeNacimiento)
+
+    try:
+        genero = curp[10]
+    except:
+        saveCropCredential(width*pos['gender'][0], height*pos['gender'][1], width*pos['gender'][2], height*pos['gender'][3], path, img_names['gender'], INE)
+        genero = readField(path, img_names['gender'])
+
+    saveCropCredential(width*pos['municipality'][0], height*pos['municipality'][1], width*pos['municipality'][2], height*pos['municipality'][3], path, img_names['municipality'], INE)
+    municipality = readField(path, img_names['municipality'])
+
+    saveCropCredential(width*pos['section'][0], height*pos['section'][1], width*pos['section'][2], height*pos['section'][3], path, img_names['section'], INE)
+    seccion = readField(path, img_names['section'])
+
+    return nombre, domicilio, fechaDeNacimiento, curp, genero, municipality, seccion
             
 def ModeloIne(
         filename: str,
         path: str
     ) -> Dict[str, str]:
+    """
+        Function that reads the information from the INE
+
+        Inputs:
+            filename: name of the img stored
+            path: path of the img resources
+
+        Outputs:
+            Dict - dict with INEInfo class structure
+        
+    """
     INE = Image.open(filename)
     width, height = INE.width, INE.height
-
-    for i in range(4):
+ 
+    for _ in range(4):
         credencialValida = validCredential(width, height, path, INE)
         if credencialValida:
             break
@@ -76,15 +236,15 @@ def ModeloIne(
     
     emision = 0
     if credencialValida:
-        saveCropCredential(width*0.30, height*0.755, width*0.88, height*0.945, path, "INE-otros.png",  INE)
-        result = reader2.readtext(path + "INE-otros.png", detail = 0)
+        saveCropCredential(width*0.30, height*0.755, width*0.88, height*0.945, path, img_names['others'],  INE)
+        result = reader2.readtext(path + img_names['others'], detail = 0)
         emision = result[-1].split()[-1]
         if emision.isnumeric(): 
             emision = int(emision)-10
         else: # podria estar ligeramente rotada
             INE = INE.rotate(-3)
-            saveCropCredential(width*0.30, height*0.755, width*0.88, height*0.945, path, "INE-otros.png", INE)
-            result = reader2.readtext(path + "INE-otros.png", detail = 0)
+            saveCropCredential(width*0.30, height*0.755, width*0.88, height*0.945, path, img_names['others'], INE)
+            result = reader2.readtext(path + img_names['others'], detail = 0)
             ''.join(result)
             emision = result[-1].split()[-1]
             if emision.isnumeric(): 
@@ -96,104 +256,15 @@ def ModeloIne(
         removeFolder(path)
         return {}
 
-    if credencialValida and int(emision) < 2020:
-        saveCropCredential(width*0.28, height*0.26, width*0.7, height*0.46, path, "INE-nombre.png", INE)
-        nombre = reader2.readtext(path + "INE-nombre.png", detail = 0)[1:]
-        nombre = " ".join(nombre).upper()
+    if int(emision) < 2020:
+        print("1")
+        pos_ = pos['old']
+
+    if int(emision) >= 2020:
+        print("2")
+        pos_ = pos['new']
         
-        saveCropCredential(width*0.30, height*0.44, width*0.825, height*0.69, path, "INE-domicilio.png", INE)
-        domicilio = reader2.readtext(path + "INE-domicilio.png", detail = 0)[1:]
-        domicilio = " ".join(domicilio).upper()
-
-        saveCropCredential(width*0.76, height*0.28, width*0.98, height*0.365, path, "INE-fechaDeNacimiento.png", INE)
-        fechaDeNacimiento = reader2.readtext(path + "INE-fechaDeNacimiento.png", detail = 0)
-        if len(fechaDeNacimiento) >= 1 and len(fechaDeNacimiento[-1]) >= 8:
-            fechaDeNacimiento = fechaDeNacimiento[-1] 
-            diaDeNacimiento = fechaDeNacimiento[0:2]
-            mesDeNacimiento =  fechaDeNacimiento[3:5] if (fechaDeNacimiento[2] == "/") else fechaDeNacimiento[2:4]
-            añoDeNacimiento = fechaDeNacimiento[-4:]
-            fechaDeNacimiento = f"{añoDeNacimiento}-{mesDeNacimiento}-{diaDeNacimiento}"
-        
-        saveCropCredential(width*0.29, height*0.705, width*0.68, height*0.79, path, "INE-curp.png", INE)
-        curp = reader2.readtext(path + "INE-curp.png", detail = 0)
-
-        if (len(curp) >= 1):
-            for i, element in enumerate(curp): #primer caso checa por el siguiente elemento despues de curp
-                if element.upper() == "CURP" and len(curp) >= i+2:
-                    curp = curp[i+1].upper().replace(" ", "")
-            if type(curp) is list: #segundo caso solo toma el ultimo elemento de la lista
-                curp = curp[-1].upper().replace(" ", "")
-
-        try:
-            genero = curp[10]
-        except:
-            saveCropCredential(width*0.91, height*0.33, width*0.97, height*0.445, path, "INE-genero.png", INE)
-            genero = reader2.readtext(path + f"INE-genero.png", detail = 0)
-            for elemento in genero:
-                if "H" in elemento:
-                    genero = "H"
-                elif "M" in elemento:
-                    genero = "M"
-            if type(genero) is list:
-                genero = ""
-
-        saveCropCredential(width*0.615, height*0.76, width*0.70, height*0.84, path, "INE-municipio.png", INE)
-        municipality = reader2.readtext(path + "INE-municipio.png", detail=0)
-        try:
-            municipality = ' '.join(municipality)
-        except:
-            municipality = ''
-
-    if credencialValida and int(emision) >= 2020:
-        saveCropCredential(width*0.28, height*0.26, width*0.7, height*0.52, path, "INE-nombre.png", INE)
-        nombre = reader2.readtext(path + "INE-nombre.png", detail = 0)
-        if (len(nombre) >= 1):
-            nombre = nombre[1:]
-        nombre = [element.upper() for element in nombre if ( element.upper() != "DOMICILIO")]
-        nombre = " ".join(nombre)
-
-        saveCropCredential(width*0.30, height*0.49, width*0.825, height*0.705, path, "INE-domicilio.png", INE)
-        domicilio = reader2.readtext(path + "INE-domicilio.png", detail = 0)
-        if (len(domicilio) >= 1):
-            domicilio = domicilio[1:]
-        domicilio = " ".join(domicilio)
-
-        saveCropCredential(width*0.30, height*0.74, width*0.67, height*0.855, path, "INE-curp.png", INE)
-        curp = reader2.readtext(path + "INE-curp.png", detail = 0)
-        if (len(curp) >= 1):
-            for i, element in enumerate(curp): #primer caso checa por el siguiente elemento despues de curp
-                if element.upper() == "CURP" and len(curp) >= i+2:
-                    curp = curp[i+1].upper().replace(" ", "")
-            if type(curp) is list: #segundo caso solo toma el ultimo elemento de la lista
-                curp = curp[-1].upper().replace(" ", "")
-
-        try:
-            genero = curp[10]
-        except:
-            saveCropCredential(width*0.83, height*0.25, width*0.98, height*0.38, path, "INE-genero.png", INE)
-            genero = reader2.readtext(path + f"INE-genero.png", detail = 0)
-            for elemento in genero:
-                if "H" in elemento:
-                    genero = "H"
-                elif "M" in elemento:
-                    genero = "M"
-            if type(genero) is list: genero = ""
-
-        saveCropCredential(width*0.30, height*0.84, width*0.57, height*0.96, path, "INE-fechaDeNacimiento.png", INE)
-        fechaDeNacimiento = reader2.readtext(path + "INE-fechaDeNacimiento.png", detail = 0)
-        if len(fechaDeNacimiento) >= 1 and len(fechaDeNacimiento[-1]) >= 8:
-            fechaDeNacimiento = fechaDeNacimiento[-1] 
-            diaDeNacimiento = fechaDeNacimiento[0:2]
-            mesDeNacimiento =  fechaDeNacimiento[3:5] if (fechaDeNacimiento[2] == "/") else fechaDeNacimiento[2:4]
-            añoDeNacimiento = fechaDeNacimiento[-4:]
-            fechaDeNacimiento = f"{añoDeNacimiento}-{mesDeNacimiento}-{diaDeNacimiento}"
-
-        saveCropCredential(width*0.615, height*0.76, width*0.70, height*0.84, path, "INE-municipio.png", INE)
-        municipality = reader2.readtext(path + "INE-municipio.png", detail=0)
-        try:
-            municipality = ' '.join(municipality)
-        except:
-            municipality = ''
+    nombre, domicilio, fechaDeNacimiento, curp, genero, municipality, seccion = extractInformation(width, height, path, pos_, INE)
     
     estado = getState(
         width,
@@ -211,7 +282,8 @@ def ModeloIne(
                         municipality,
                         domicilio,
                         format_date_to_front(fechaDeNacimiento),
-                        curp
+                        curp,
+                        seccion
                 )
     
     return ine_info.to_JSON()

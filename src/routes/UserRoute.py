@@ -1,34 +1,127 @@
 from flask import Blueprint, jsonify, request
 from src.models.UserModel import UsersModel
-from src.utils.Security import Security
-from src.models.entities.user.User import User
+from src.models.entities.multimedia import Multimedia
+from src.models.MultimediaModel import MultimediaModel
+import uuid
+import hashlib
+from decouple import config
+from src.utils.AmazonS3 import \
+                            upload_file_to_s3, \
+                            delete_file_from_s3
 
 main = Blueprint('user_blueprint', __name__)
 
-@main.route('/')
-def get_users():
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
-    has_access = Security.verify_user_token(request.headers)
+def allowed_file(filename):
+    return '.' in filename and \
+        filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-    if has_access:
-        try:
-            users = UsersModel.get_users()
-            return jsonify(users)
-        except Exception as ex:
-            return jsonify({'message': str(ex)}), 500
-    else:
-        response = jsonify({'message': 'Unauthorized'})
-        return response, 401
-
-
-@main.route('/self', methods = ['POST'])
-def get_user():
+@main.route('/update',  methods = ['PATCH'])
+def update_users_data():
     try:
-        email = request.json['email']
-        user = User(None, email, None, None, None, None, None, None, None)
-        user = UsersModel.get_user(user)
+        profile_id = request.form['profile_id']
+        email = request.form['email']
+        phone_number = request.form['phone_number']
+
+        if 'profile_photo' in request.files:
+            file = request.files['profile_photo']
+            if file and allowed_file(file.filename):
+                multimedia = MultimediaModel.get_multimedia(profile_id, 'PROFILE')
+                if len(multimedia) != 0:
+                    for archive in multimedia:
+                        file_name = archive['archive_url'].split("/")[-1]
+                        delete_file_from_s3(file_name)
+                    MultimediaModel.delete_multimedia(profile_id, 'PROFILE')
+                new_name = uuid.uuid4().hex + '.' + file.filename.rsplit('.',1)[1].lower()
+                upload_file_to_s3(file,new_name)
+                profile_photo = 'https://{}.s3.{}.amazonaws.com/{}'.format(config('AWS_BUCKET_NAME'),config('REGION_NAME'),new_name)
+                multimedia = Multimedia(profile_id,profile_id, 'PROFILE', profile_photo, profile_photo.rsplit('.',1)[1].lower())
+                MultimediaModel.create_multimedia(multimedia)
+                UsersModel.update_data_photo_user(profile_id,email,phone_number,profile_photo)
+                return jsonify({
+                    'message': 'OK',
+                    'profile_photo': profile_photo
+                })
+        else:
+            UsersModel.update_user(profile_id,email,phone_number)
+            return jsonify({
+                'message': 'OK'
+            })
+    except Exception as ex:
+        print(ex)
+        return jsonify({'message': str(ex)}), 500
+
+
+@main.route('/<profile_id>', )
+def get_user_data(profile_id):
+    try:
+        user = UsersModel.get_user_data(profile_id)
         return jsonify(user)
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500
-   
 
+
+@main.route('/<profile_id>', methods = ['DELETE'])
+def delete_user_data(profile_id):
+    try:
+        multimedia = MultimediaModel.get_all_multimedia_from_profile(profile_id)
+        print(multimedia)
+        for archive in multimedia:
+            file = archive['archive_url'].split("/")[-1]
+            delete_file_from_s3(file)
+        MultimediaModel.delete_all_multimedia(profile_id)
+        UsersModel.delete_user_data(profile_id)
+        return {
+            'message': 'OK'
+        }
+    except Exception as ex:
+        return jsonify({'message': str(ex)}), 500
+
+
+@main.route('/phone/<phone>', methods = ['DELETE'])
+def delete_user_data_by_phone(phone):
+    try:
+        profile_id = UsersModel.get_id_by_phone(phone)
+        multimedia = MultimediaModel.get_all_multimedia_from_profile(profile_id)
+        for archive in multimedia:
+            file = archive['archive_url'].split("/")[-1]
+            delete_file_from_s3(file)
+        MultimediaModel.delete_all_multimedia(profile_id)
+        UsersModel.delete_user_data(profile_id)
+        return {
+            'message': 'OK'
+        }
+    except Exception as ex:
+        return jsonify({'message': str(ex)}), 500
+ 
+
+@main.route('/password', methods = ['PATCH'])
+def update_password():
+    try:
+        profileId = request.json['profileId']
+        pre_password = request.json['password']
+        password = hashlib.shake_256(pre_password.encode('utf-8')).hexdigest(16)
+        affected_row = UsersModel.update_password(password,profileId)
+        if affected_row == 1:
+            return {
+                'message': 'OK'
+            }
+        else:
+            return jsonify({'message': "User not found"}), 500
+    except Exception as ex:
+        return jsonify({'message': str(ex)}), 500
+    
+
+@main.route('/phone/<phone>', methods = ['GET'])
+def search_user_by_phone(phone):
+    try:
+        profile_id = UsersModel.get_id_by_phone(phone)
+        if profile_id != None:
+            return {
+                'profileId': profile_id[0]
+            }
+        else:
+            return jsonify({'message': "User not found"}), 500
+    except Exception as ex:
+        return jsonify({'message': str(ex)}), 500

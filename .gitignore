@@ -9,4 +9,16 @@ __pycache__/
 .env
 
 # resources
+resources/
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
+
+.env_aws
+inf_beta_key.pem
+influexqa_instance_key.pem
+influex_backup_key.pem
 resources/img/
+
+vision_key.json

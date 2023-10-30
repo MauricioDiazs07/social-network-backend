@@ -1,11 +1,11 @@
 class Login():
 
-    def __init__(self, email, password):
-        self.email = email
+    def __init__(self, phone, password):
+        self.phone = phone
         self.password = password
 
     def to_JSON(self):
         return {
-            'email': self.email,
+            'phone': self.phone,
             'password': self.password
         }

@@ -1,22 +1,33 @@
+import uuid
+import hashlib
 from flask import Blueprint, jsonify, request
 from src.models.entities.auth import Login, SignUp
 from src.models.AuthModel import AuthModel
 from src.utils.Security import Security
+from src.models.entities.multimedia import Multimedia
+from src.models.MultimediaModel import MultimediaModel
+from src.utils.AmazonS3 import upload_file_to_s3  
+from decouple import config
 from src.utils._support_functions import \
                                     format_date_to_DB, \
                                     getGender, \
                                     getState, \
                                     getMunicipality
-import hashlib
-
+          
 main = Blueprint('auth_blueprint', __name__)
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+def allowed_file(filename):
+    return '.' in filename and \
+        filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @main.route('/login', methods = ['POST'])
 def login():
-    email = request.json['email']
-    password = request.json['password']
-    login = Login(email, password)
-
+    phone = request.json['phoneNumber']
+    pre_password = request.json['password']
+    password = hashlib.shake_256(pre_password.encode('utf-8')).hexdigest(16)
+    login = Login(phone, password)
     authenticated_user = AuthModel.login(login)
     if (authenticated_user != None):
         encoded_token = Security.generate_token(authenticated_user)
@@ -33,34 +44,64 @@ def login():
 @main.route('/signup', methods = ['POST'])
 def sign_up():
     try:
-        email = request.json['email']
-        password = request.json['password']
-        name = request.json['name']
-        gender = request.json['gender']
-        state_id = request.json['state']
-        municipality_id = request.json['municipality']
-        address = request.json['address']
-        birthday = request.json['birthday']
-        curp = request.json['curp']
-        identification_photo = request.json['identification_photo']
-        phone = request.json['phone']
-        profile_id = hashlib.shake_256(email.encode('utf-8')).hexdigest(16)
-
+        print("1")
+        phone = request.form['phone']
+        pre_password = request.form['password']
+        password = hashlib.shake_256(pre_password.encode('utf-8')).hexdigest(16)
+        name = request.form['name']
+        gender = request.form['gender']
+        state_id = request.form['state']
+        municipality_id = request.form['municipality']
+        address = request.form['address']
+        birthday = request.form['birthday']
+        curp = request.form['curp']
+        email = request.form['email']
+        section = request.form['section']
+        if email == '':
+            email = None
+        profile_id = hashlib.shake_256(phone.encode('utf-8')).hexdigest(16)
+        print("2")
         # process information for database
         birthday = format_date_to_DB(birthday)
         gender = getGender(gender)
         state = getState(state_id)
         municipality = getMunicipality(state_id, municipality_id)
-
-        signup = SignUp(profile_id,email,password,name,gender,state,municipality,address,birthday,curp,identification_photo,phone)
-
+        print("3")
+        file = request.files['identification_photo']
+        if file and allowed_file(file.filename):
+            new_name = uuid.uuid4().hex + '.' + file.filename.rsplit('.',1)[1].lower()
+            upload_file_to_s3(file,new_name)
+            identification_photo = 'https://{}.s3.{}.amazonaws.com/{}'.format(config('AWS_BUCKET_NAME'),config('REGION_NAME'),new_name)
+            multimedia = Multimedia(profile_id,profile_id, 'IDENTIFICATION', identification_photo, file.filename.rsplit('.',1)[1].lower())
+            MultimediaModel.create_multimedia(multimedia)
+        print("4")
+        if 'profile_photo' in request.files:
+            file = request.files['profile_photo']
+            if file and allowed_file(file.filename):
+                new_name = uuid.uuid4().hex + '.' + file.filename.rsplit('.',1)[1].lower()
+                upload_file_to_s3(file,new_name)
+                profile_photo = 'https://{}.s3.{}.amazonaws.com/{}'.format(config('AWS_BUCKET_NAME'),config('REGION_NAME'),new_name)
+                multimedia = Multimedia(profile_id, profile_id, 'PROFILE', profile_photo, file.filename.rsplit('.',1)[1].lower())
+                MultimediaModel.create_multimedia(multimedia)
+        else:
+            profile_photo = None
+        print("5")
+        signup = SignUp(profile_id,email,password,name,gender,state,municipality,address,birthday,curp,identification_photo,phone,profile_photo,section)
+        print(signup.to_JSON())
         affected_row = AuthModel.signup(signup)
-
+        print("7")
         if affected_row == 1:
-            return jsonify(signup.email)
+            return jsonify({
+                'message': 'OK',
+                'user': email
+            })
         else:
             response = jsonify({'message': 'Error al registrarse'})
             return response, 500
         
     except Exception as ex:
+        print(ex)
+        MultimediaModel.delete_multimedia(profile_id,'IDENTIFICATION')
+        if profile_id != None:
+            MultimediaModel.delete_multimedia(profile_id,'PROFILE')
         return jsonify({'message': str(ex)}), 500

@@ -9,7 +9,8 @@ class INEInfo():
             municipality: str,
             address: str,
             birthday: str,
-            curp: str
+            curp: str,
+            section: str
     ) -> None:
         self.name = name
         self.gender = gender
@@ -18,6 +19,7 @@ class INEInfo():
         self.address = address
         self.birthday = birthday
         self.curp = curp
+        self.section = section
 
     def to_JSON(self) -> Dict[str, str]:
         return {
@@ -27,5 +29,6 @@ class INEInfo():
             'municipality': self.municipality,
             'address': self.address,
             'birthday': self.birthday,
-            'curp': self.curp
+            'curp': self.curp,
+            'section': self.section
         }
