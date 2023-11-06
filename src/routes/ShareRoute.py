@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from src.utils.AmazonS3 import upload_file_to_s3, delete_file_from_s3
 from src.models.ShareModel import ShareModel
+from src.models.MasterModel import MasterModel
 from src.models.MultimediaModel import MultimediaModel
 from src.models.InteractionModel import InteractionModel
 from src.models.entities.share import CreateShare
@@ -184,6 +185,7 @@ def list_share():
 @main.route('/profile/<profile_id>', methods = ['GET'])
 def list_share_from_profile(profile_id):
     try:
+        master = MasterModel.get_info(profile_id)
         shares = ShareModel.get_shares_from_profile(profile_id)
         multimedias = MultimediaModel.get_all_multimedia()
         comments = InteractionModel.get_all_comments()
@@ -196,7 +198,7 @@ def list_share_from_profile(profile_id):
                 post_like = []
                 autoLike = False
                 for multimedia in multimedias:
-                    if 'share_id' in multimedia and share['id'] == multimedia['share_id']:
+                    if 'share_id' in multimedia and str(share['id']) == str(multimedia['share_id']):
                         multimedia.pop('share_id')
                         multimedia.pop('share_type')                      
                         post_multimedia.append(multimedia)
@@ -217,8 +219,13 @@ def list_share_from_profile(profile_id):
                 share['comments'] = {"count": len(post_comment), "data": post_comment}
                 share['likes'] = {"count": len(post_like), "data": post_like, "like": autoLike}
                 share['creationDate'] = reformatCreatedDate(share['creationDate'])
+                share.pop('name')
+                share.pop('profileId')
+                share.pop('profileImage')
+                share.pop('shareType')
                 post.append(share)
-        return post
+        master['post'] = post
+        return master
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500
 

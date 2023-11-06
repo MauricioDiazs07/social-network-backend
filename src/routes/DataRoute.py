@@ -23,13 +23,13 @@ def all_data():
 
         return jsonify({
             'interests': {
-                'array': [dicc['marker'] for dicc in interest_data],
+                'array': list(set([dicc['marker'] for dicc in interest_data])),
                 'data': interest_data
             },
             'gender': gender_count,
             'section': {
                 # Ordenar
-                'array': sorted(section),
+                'array': sorted(list(set(section))),
                 "data": section_count
             },
             'age': ages_classified
