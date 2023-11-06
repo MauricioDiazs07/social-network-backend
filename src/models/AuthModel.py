@@ -1,7 +1,7 @@
 from src.database.db import get_connection
 from .entities.auth.AuthUser import AuthUser
 
-PROFILE_QUERY = """ INSERT INTO "T_PROFILE" ("ID","EMAIL","PASSWORD","ROLE_ID","NAME","GENDER","PROFILE_PHOTO","PHONE_NUMBER") VALUES (%s,%s,%s,1,%s,%s,%s,%s) """
+PROFILE_QUERY = """ INSERT INTO "T_PROFILE" ("ID","EMAIL","PASSWORD","ROLE_ID","NAME","GENDER","PROFILE_PHOTO","PHONE_NUMBER", "AREA_CODE") VALUES (%s,%s,%s,1,%s,%s,%s,%s,%s) """
 USER_QUERY = """ INSERT INTO "T_USER_DATA" ("PROFILE_ID","STATE","MUNICIPALITY","ADDRESS","BIRTHDATE","CURP","IDENTIFICATION_PHOTO","SECTION") VALUES (%s,%s,%s,%s,%s,%s,%s,%s) """
 LOGIN_QUERY = """ SELECT "ID", "EMAIL", "NAME", "ROLE_ID" FROM "T_PROFILE" WHERE "PHONE_NUMBER" = %s AND "PASSWORD" = %s"""
 
