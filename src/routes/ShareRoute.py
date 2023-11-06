@@ -66,7 +66,7 @@ def update_share():
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500
 
-@main.route('/get', methods = ['GET'])
+@main.route('/get', methods = ['POST'])
 def get_share():
     try:
         share_id = str(request.json['share_id'])
