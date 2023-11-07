@@ -9,6 +9,9 @@ CLEAN_INTEREST = """ DELETE FROM "T_USER_INTEREST" WHERE "PROFILE_ID" = '{}' """
 GET_INTEREST = """ SELECT "INTEREST_ID", "DESCRIPTION" FROM "T_USER_INTEREST" INNER JOIN "T_CATALOGUE_INTEREST" ON "T_USER_INTEREST"."INTEREST_ID" = "T_CATALOGUE_INTEREST"."ID" WHERE "PROFILE_ID" = '{}' """
 GET_SHARE_INTEREST = """ SELECT * FROM "T_SHARE_INTEREST" """
 GET_ALL_SHARE_INTEREST = """ SELECT * FROM "T_SHARE_INTEREST" """
+
+DELETE_SHARE_INTEREST = """ DELETE FROM "T_SHARE_INTEREST" WHERE "SHARE_ID"  = %s """
+
 class InterestModel():
 
     @classmethod
@@ -116,5 +119,18 @@ class InterestModel():
                     interest_list.append({"share_id":row[0], "id": row[1]})
             conn.close()
             return interest_list
+        except Exception as ex:
+            raise Exception(ex)
+        
+    @classmethod
+    def delete_share_interest(self, share_id):
+        try:
+            conn = get_connection()
+            with conn.cursor() as cur:
+                cur.execute(DELETE_SHARE_INTEREST,(share_id,))
+                affected_row = cur.rowcount
+                conn.commit()
+            conn.close()
+            return affected_row
         except Exception as ex:
             raise Exception(ex)

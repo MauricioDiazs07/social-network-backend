@@ -236,6 +236,7 @@ def delete_share():
     try:
         share_id = request.json['shareId']
         share_type = request.json['shareType']
+        InterestModel.delete_share_interest(share_id)
         ShareModel.delete_share(share_id)
         multimedia = MultimediaModel.get_multimedia(share_id,share_type)
         print(multimedia)
