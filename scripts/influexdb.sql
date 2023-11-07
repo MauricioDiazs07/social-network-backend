@@ -43,6 +43,7 @@ CREATE TABLE "T_PROFILE" (
         REFERENCES "T_CATALOGUE_ROLE"("ID")
 );
 
+ALTER TABLE "T_PROFILE" ADD COLUMN "AREA_CODE" VARCHAR(2) NULL;
 
 /* 
 -------------------------------------------------------------------------------

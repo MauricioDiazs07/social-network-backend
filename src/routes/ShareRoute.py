@@ -96,7 +96,7 @@ def get_share():
         return jsonify({'message': str(ex)}), 500
     
 
-@main.route('/list/feed', methods = ['POST'])
+@main.route('/list/post', methods = ['POST'])
 def list_share():
     try:
         profile_id = request.json['profile_id']

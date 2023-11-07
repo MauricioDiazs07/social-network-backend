@@ -16,6 +16,7 @@ def get_master_data(profile_id):
         comments = InteractionModel.get_all_comments()
         likes = InteractionModel.get_all_likes()
         post = []
+        history = []
         for share in shares:
             if share['shareType'] == 'POST':
                 post_multimedia = []
@@ -47,9 +48,19 @@ def get_master_data(profile_id):
                 share.pop('name')
                 share.pop('profileId')
                 share.pop('profileImage')
-                share.pop('shareType')
                 post.append(share)
+            if share['shareType'] == 'HISTORY':
+                post_multimedia = []
+                for multimedia in multimedias:
+                    if 'share_id' in multimedia and str(share['id']) == multimedia['share_id']:
+                        multimedia.pop('share_id')
+                        multimedia.pop('share_type')
+                        multimedia.pop('profile_id')
+                        post_multimedia.append(multimedia)
+                share['multimedia'] = post_multimedia[0]
+                history.append(share)
         master['post'] = post
+        master['history'] = history
         return master
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500
