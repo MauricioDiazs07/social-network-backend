@@ -35,6 +35,7 @@ def login():
             'profile_id': authenticated_user.id,
             'email': authenticated_user.email,
             'role_id': authenticated_user.role_id,
+            'verified_phone': authenticated_user.verified_phone,
             'token': encoded_token
             })
     else:

@@ -2,7 +2,7 @@ from src.database.db import get_connection
 from src.models.entities.interaction.ReadComment import ReadComment
 from src.models.entities.interaction.ReadLike import ReadLike;
 
-CREATE_COMMENT = """ INSERT INTO "T_INTERACTION_COMMENT" ("PROFILE_ID","SHARE_ID","SHARE_TYPE","TEXT") VALUES (%s,%s,%s,%s) """
+CREATE_COMMENT = """ INSERT INTO "T_INTERACTION_COMMENT" ("PROFILE_ID","SHARE_ID","SHARE_TYPE","TEXT","FEELING_ID","FEELING_PERCENTAGE") VALUES (%s,%s,%s,%s,%s,%s) """
 READ_ALL_COMMENTS = """ SELECT "T_INTERACTION_COMMENT"."ID","NAME","PROFILE_ID","T_PROFILE"."PROFILE_PHOTO","T_INTERACTION_COMMENT"."TEXT","SHARE_ID","SHARE_TYPE","T_INTERACTION_COMMENT"."CREATION_DATE"  FROM "T_INTERACTION_COMMENT"  INNER JOIN "T_PROFILE" ON "T_INTERACTION_COMMENT"."PROFILE_ID" = "T_PROFILE"."ID" ORDER BY "T_INTERACTION_COMMENT"."CREATION_DATE" ASC """
 READ_COMMENT = """ SELECT "T_INTERACTION_COMMENT"."ID","NAME","PROFILE_ID","T_PROFILE"."PROFILE_PHOTO","T_INTERACTION_COMMENT"."TEXT","SHARE_ID","SHARE_TYPE","T_INTERACTION_COMMENT"."CREATION_DATE"  FROM "T_INTERACTION_COMMENT"  INNER JOIN "T_PROFILE" ON "T_INTERACTION_COMMENT"."PROFILE_ID" = "T_PROFILE"."ID" WHERE "SHARE_ID" = %s """
 UPDATE_COMMENT = """ UPDATE "T_INTERACTION_COMMENT" SET "TEXT" = %s WHERE "ID" = %s """
@@ -23,7 +23,7 @@ class InteractionModel():
         try:
             conn = get_connection()
             with conn.cursor() as cur:
-                cur.execute(CREATE_COMMENT, (comment.profile_id, comment.share_id,comment.share_type,comment.text))
+                cur.execute(CREATE_COMMENT, (comment.profile_id, comment.share_id,comment.share_type,comment.text, comment.feeling_id, comment.feeling_percentage))
                 affected_row = cur.rowcount
                 conn.commit()
             conn.close()

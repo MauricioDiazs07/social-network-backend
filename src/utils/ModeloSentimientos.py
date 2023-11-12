@@ -1,4 +1,4 @@
-from frecuenciasSentimientos import frecuencias
+from src.utils.frecuenciasSentimientos import frecuencias
 
 def Clasifica(texto: str) -> str: # Input - un string con la oracion a clasificar
     # Preprocesado
@@ -52,8 +52,12 @@ def Clasifica(texto: str) -> str: # Input - un string con la oracion a clasifica
     sentimiento = ""
     score = 0.0
     # regreso el numero? ej 0 es positivo, 1 es negativo y 2 agresivo. o un string?
-    if   (a1 >= a2 and a1 >= a3): sentimiento, score = "positivo", a1 
-    elif (a2 >= a1 and a2 >= a3): sentimiento, score = "negativo", a2 
-    elif (a3 >= a1 and a3 >= a2): sentimiento, score = "agresivo", a3
+    if   (a1 >= a2 and a1 >= a3): sentimiento, score = 1, a1 * 100 
+    elif (a2 >= a1 and a2 >= a3): sentimiento, score = 2, a2 * 100
+    elif (a3 >= a1 and a3 >= a2): sentimiento, score = 3, a3 * 100
     
-    return sentimiento
+    return sentimiento, score
+
+if __name__=='__main__':
+    message = 'No me gusta'
+    print(message, Clasifica(message))

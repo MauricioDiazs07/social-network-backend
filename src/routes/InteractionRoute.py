@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from src.models.InteractionModel import InteractionModel
 from src.models.entities.interaction import Comment, Like
+from src.utils.ModeloSentimientos import Clasifica
 
 main = Blueprint('interaction_blueprint', __name__)
 
@@ -12,7 +13,8 @@ def create_comment():
         share_id = request.json['share_id']
         share_type = request.json['share_type']
         text = request.json['text']
-        comment = Comment(profile_id,share_id,share_type,text)
+        feeling_id,feeling_percentage = Clasifica(text)
+        comment = Comment(profile_id,share_id,share_type,text,feeling_id,feeling_percentage)
         InteractionModel.create_comment(comment)
         return jsonify({
             "message": "OK"
