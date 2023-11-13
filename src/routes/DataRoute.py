@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 from src.models.DataModel import DataModel
-from src.models.InterestModel import InterestModel
+from src.models.CatalogueModel import CatalogueModel
 import datetime
 
 main = Blueprint('data_blueprint', __name__)
@@ -8,16 +8,18 @@ main = Blueprint('data_blueprint', __name__)
 @main.route('/',  methods=['GET'])
 def all_data():
     try:
+        feelings_all = CatalogueModel.feeling_data()
+        interest_all = CatalogueModel.interest_data()
         interests = DataModel.get_interest()
-        interest_all = InterestModel.get_all()
+        genders = DataModel.get_gender()
+        birthdates, section = DataModel.get_birthdate_and_section()
+        comments = DataModel.get_feelings_comments()
+        
+        acceptance_count = count_feelings(feelings_all, comments)
         interests_count = count_data(interests)
         interest_count_des = add_count(interests_count,interest_all)
         interest_data = rename_interest(interest_count_des)
-
-        genders = DataModel.get_gender()
         gender_count = create_object_data(genders)
-
-        birthdates, section = DataModel.get_birthdate_and_section()
         ages_classified = classified_ages(birthdates)
         section_count = create_object_data_sorted(section)
 
@@ -28,11 +30,11 @@ def all_data():
             },
             'gender': gender_count,
             'section': {
-                # Ordenar
                 'array': sorted(list(set(section))),
                 "data": section_count
             },
-            'age': ages_classified
+            'age': ages_classified,
+            'acceptance': acceptance_count
         })
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500
@@ -43,7 +45,7 @@ def seccion_data(section):
     try:
 
         interests = DataModel.get_interests_by_section(section)
-        interest_all = InterestModel.get_all()
+        interest_all = CatalogueModel.interest_data()
         interests_count = count_data(interests)
         interest_count_des = add_count(interests_count,interest_all)
         interest_data = rename_interest(interest_count_des)
@@ -64,6 +66,22 @@ def interest_data(interest_id):
 
         return jsonify({
             'section': section_count
+        })
+    except Exception as ex:
+        return jsonify({'message': str(ex)}), 500
+
+
+@main.route('/acceptance/<section>',  methods=['GET'])
+def acceptance_data(section):
+    try:
+        feelings_all = CatalogueModel.feeling_data()
+        interest_all = CatalogueModel.interest_data()
+        acceptance = DataModel.get_acceptance_by_section(section)
+        acceptance_count = count_acceptance(feelings_all,interest_all,acceptance)
+
+        return jsonify({
+            'section': section,
+            'acceptance': acceptance_count
         })
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500
@@ -180,3 +198,43 @@ def classified_ages(birthdates):
     for indice, diccionario in enumerate(list_dicc):
         diccionario["x"] = indice
     return list_dicc
+
+
+def count_feelings(feelings_all, comments):
+    data_count = {feel['description']: 0 for feel in feelings_all}
+    for element in comments:
+        if element != None:
+            if element in data_count:
+                data_count[element] += 1
+            else:
+                data_count[element] = 1
+
+    list_dicc= [{"label": clave, "value": valor} for clave, valor in data_count.items()]
+    return list_dicc
+
+def count_acceptance(feelings_all,interest_all,acceptance_all):
+    total = []
+    for feeling in feelings_all:
+        data_count = {interest['description']: 0 for interest in interest_all}
+        for acceptance in acceptance_all:
+            if feeling['description'] == acceptance['feeling']:
+                data_count[acceptance['interest']] += 1
+        final = transform(data_count)
+        count = {
+            'feeling': feeling['description'],
+            'data': final
+        }
+        total.append(count)
+    return total
+
+
+def transform(data_count):
+    info = []
+    for i, data in enumerate(data_count):
+        obj = {
+            "marker": data,
+            "x": i,
+            "y": data_count[data]
+        }
+        info.append(obj)
+    return info

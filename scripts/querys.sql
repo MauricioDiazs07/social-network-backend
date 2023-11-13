@@ -12,6 +12,10 @@ INSERT INTO "T_CATALOGUE_INTEREST" VALUES (5, 'Medio ambiente');
 INSERT INTO "T_CATALOGUE_INTEREST" VALUES (6, 'Economía');
 INSERT INTO "T_CATALOGUE_INTEREST" VALUES (7, 'Seguridad');
 
+INSERT INTO "T_CATALOGUE_FEELING" VALUES (1, 'Positivo');
+INSERT INTO "T_CATALOGUE_FEELING" VALUES (2, 'Negativo');
+INSERT INTO "T_CATALOGUE_FEELING" VALUES (3, 'Agresivo');
+
 /* insert credentials values */
 -- admin
 insert into "T_PROFILE" values (

@@ -22,6 +22,20 @@ def allowed_file(filename):
     return '.' in filename and \
         filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+@main.route('/verified', methods = ['POST'])
+def verified_accound():
+    profile_id = request.json['profile_id']
+    result = AuthModel.verified_accound(profile_id)
+    if result > 0:
+        return jsonify({
+            'message': 'Cuenta verificada'
+        })
+    else:
+        response = jsonify({
+            'message': 'Error al verificar'
+        })
+        return response, 500
+
 @main.route('/login', methods = ['POST'])
 def login():
     phone = request.json['phoneNumber']
