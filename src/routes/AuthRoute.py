@@ -109,7 +109,6 @@ def sign_up():
             return response, 500
         
     except Exception as ex:
-        print(ex)
         MultimediaModel.delete_multimedia(profile_id,'IDENTIFICATION')
         if profile_id != None:
             MultimediaModel.delete_multimedia(profile_id,'PROFILE')

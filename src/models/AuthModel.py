@@ -42,9 +42,7 @@ class AuthModel():
         try:
             conn = get_connection()
             with conn.cursor() as cur:
-                print("PROFILE")
                 cur.execute( PROFILE_QUERY, (signup.id,signup.email,signup.password, signup.name,signup.gender,signup.profile_photo,signup.phone))
-                print("USER")
                 cur.execute( USER_QUERY, (signup.id,signup.state,signup.municipality,signup.address,signup.birthdate,signup.curp,signup.identification_photo,signup.section))
                 affected_row = cur.rowcount
                 conn.commit()

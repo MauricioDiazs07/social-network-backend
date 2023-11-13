@@ -109,7 +109,6 @@ def googleOCR():
     clean = [replaceChars(x) for x in clean]
 
     out = {}
-    print(clean)
     for j in clean[clean.index('DOMICILIO') + 1:clean.index('CLAVE')]:
         if j.isdigit():
             cp = clean.index(j)
@@ -120,11 +119,9 @@ def googleOCR():
         out['municipality'] = clean[clean.index('MUNICIPIO') + 1]
         out['state'] = clean[clean.index('ESTADO') + 1]
     except:
-        print("Nueva")
         patron3 = re.compile('^[0-9]{4}$')
         todo = clean[clean.index('SECCION'):]
         me = " ".join(clean[cp + 1:clean.index('CLAVE')]).split(',')
-        print(len(me))
         if (len(me) == 1):
             me = " ".join(clean[cp + 1:clean.index('CLAVE')]).split('.')
         
@@ -143,5 +140,4 @@ def googleOCR():
     out['birthday'] = cumple
     out['address'] = " ".join(clean[clean.index('DOMICILIO') + 1: cp + 1])
     
-    print(out)
     return jsonify(out)
