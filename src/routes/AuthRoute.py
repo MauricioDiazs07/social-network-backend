@@ -45,11 +45,15 @@ def login():
     authenticated_user = AuthModel.login(login)
     if (authenticated_user != None):
         encoded_token = Security.generate_token(authenticated_user)
+        verified_phone = None
+        if authenticated_user.role_id == 1:
+            verified_phone = AuthModel.check_verified(authenticated_user.id)
+            print(verified_phone)
         return jsonify({
             'profile_id': authenticated_user.id,
             'email': authenticated_user.email,
             'role_id': authenticated_user.role_id,
-            'verified_phone': authenticated_user.verified_phone,
+            'verified_phone': verified_phone,
             'token': encoded_token
             })
     else:
