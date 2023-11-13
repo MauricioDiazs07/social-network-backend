@@ -57,7 +57,3 @@ def Clasifica(texto: str) -> str: # Input - un string con la oracion a clasifica
     elif (a3 >= a1 and a3 >= a2): sentimiento, score = 3, a3 * 100
     
     return sentimiento, score
-
-if __name__=='__main__':
-    message = 'No me gusta'
-    print(message, Clasifica(message))

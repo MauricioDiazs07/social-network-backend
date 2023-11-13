@@ -24,7 +24,6 @@ def upload_file_to_s3(file, new_name, acl="public-read"):
             }
         )
     except Exception as e:
-        print("Error: ", e)
         return e
     
     return file.filename
@@ -37,7 +36,6 @@ def delete_file_from_s3(file):
             Key=file
         )
     except Exception as e:
-        print("Error: ", e)
         return e
     
     return "OK"

@@ -73,15 +73,12 @@ def get_share():
         share_id = str(request.json['share_id'])
         share_type = request.json['share_type']
         share = ShareModel.get_share(share_id)
-        print(share)
         if share == None:
             return {"message": "Share not fount"}
         multimedia = MultimediaModel.get_multimedia(share_id,share_type)
-        print(multimedia)
         comment = InteractionModel.get_comment(share_id)
         likes = InteractionModel.get_likes(share_id)
         interest = InterestModel.get_share_interests(share_id)
-        print(interest)
         autolike = False
         for like in likes:
             if like['profile_id'] == share['profileId']:
@@ -190,10 +187,8 @@ def delete_share():
         InterestModel.delete_share_interest(share_id)
         ShareModel.delete_share(share_id)
         multimedia = MultimediaModel.get_multimedia(share_id,share_type)
-        print(multimedia)
         for archive in multimedia:
             file = archive['archive_url'].split("/")[-1]
-            print(file)
             delete_file_from_s3(file)
         MultimediaModel.delete_multimedia(share_id,share_type)
         InteractionModel.delete_all_comments(share_id)

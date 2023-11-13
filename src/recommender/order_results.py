@@ -22,7 +22,6 @@ def sort_by_distances(
 
 	cosine_sim_arr = np.zeros(len(posts_ids), dtype=float)
 	cosine_similarity_vector_matrix(user_embedding, posts_matrix, cosine_sim_arr)
-	# print(cosine_sim_arr)
 
 	top_similar = np.argsort(cosine_sim_arr)[::-1]
 	top = [
@@ -32,6 +31,5 @@ def sort_by_distances(
 		}
 		for i in top_similar
 	]
-
-	# print(top)
+	
 	return top

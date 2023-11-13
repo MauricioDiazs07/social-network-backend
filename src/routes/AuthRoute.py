@@ -59,7 +59,6 @@ def login():
 @main.route('/signup', methods = ['POST'])
 def sign_up():
     try:
-        print("1")
         phone = request.form['phone']
         area_code = '52'
         pre_password = request.form['password']
@@ -76,13 +75,11 @@ def sign_up():
         if email == '':
             email = None
         profile_id = hashlib.shake_256(phone.encode('utf-8')).hexdigest(16)
-        print("2")
         # process information for database
         birthday = format_date_to_DB(birthday)
         gender = getGender(gender)
         state = getState(state_id)
         municipality = getMunicipality(state_id, municipality_id)
-        print("3")
         file = request.files['identification_photo']
         if file and allowed_file(file.filename):
             new_name = uuid.uuid4().hex + '.' + file.filename.rsplit('.',1)[1].lower()
@@ -90,7 +87,6 @@ def sign_up():
             identification_photo = 'https://{}.s3.{}.amazonaws.com/{}'.format(config('AWS_BUCKET_NAME'),config('REGION_NAME'),new_name)
             multimedia = Multimedia(profile_id,profile_id, 'IDENTIFICATION', identification_photo, file.filename.rsplit('.',1)[1].lower())
             MultimediaModel.create_multimedia(multimedia)
-        print("4")
         if 'profile_photo' in request.files:
             file = request.files['profile_photo']
             if file and allowed_file(file.filename):
@@ -101,11 +97,8 @@ def sign_up():
                 MultimediaModel.create_multimedia(multimedia)
         else:
             profile_photo = None
-        print("5")
         signup = SignUp(profile_id,email,password,name,gender,state,municipality,address,birthday,curp,identification_photo,phone,profile_photo,section,area_code)
-        print(signup.to_JSON())
         affected_row = AuthModel.signup(signup)
-        print("7")
         if affected_row == 1:
             return jsonify({
                 'message': 'OK',

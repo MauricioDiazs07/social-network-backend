@@ -34,7 +34,6 @@ def get_master_data(profile_id):
                         comment.pop('share_type')
                         post_comment.append(comment)
                 for like in likes:
-                    print(like)
                     if 'share_id' in like and share['id'] == like['share_id']:
                         like.pop('share_id')
                         like.pop('share_type')

@@ -49,7 +49,6 @@ def update_users_data():
                 'message': 'OK'
             })
     except Exception as ex:
-        print(ex)
         return jsonify({'message': str(ex)}), 500
 
 
@@ -66,7 +65,6 @@ def get_user_data(profile_id):
 def delete_user_data(profile_id):
     try:
         multimedia = MultimediaModel.get_all_multimedia_from_profile(profile_id)
-        print(multimedia)
         for archive in multimedia:
             file = archive['archive_url'].split("/")[-1]
             delete_file_from_s3(file)
