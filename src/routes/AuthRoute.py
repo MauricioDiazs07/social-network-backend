@@ -63,7 +63,7 @@ def login():
 def sign_up():
     try:
         phone = request.form['phone']
-        area_code = '52'
+        area_code = request.form['area_code']
         pre_password = request.form['password']
         password = hashlib.shake_256(pre_password.encode('utf-8')).hexdigest(16)
         name = request.form['name']

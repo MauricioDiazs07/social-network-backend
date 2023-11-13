@@ -7,6 +7,20 @@ from src.utils._support_functions import reformatCreatedDate
 
 main = Blueprint('masters_blueprint', __name__)
 
+@main.route('/',  methods=['PUT'])
+def update_master_data():
+    try:
+        profile_id = request.form['profile_id']
+        name = request.form['name']
+        email = request.form['email']
+        profile_photo = request.form['profile_photo']
+        
+
+        return jsonify({'message': 'ok'})
+    except Exception as ex:
+        return jsonify({'message': str(ex)}), 500
+
+
 @main.route('/<profile_id>', )
 def get_master_data(profile_id):
     try:
