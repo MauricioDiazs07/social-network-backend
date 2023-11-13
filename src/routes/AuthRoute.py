@@ -48,7 +48,6 @@ def login():
         verified_phone = None
         if authenticated_user.role_id == 1:
             verified_phone = AuthModel.check_verified(authenticated_user.id)
-            print(verified_phone)
         return jsonify({
             'profile_id': authenticated_user.id,
             'email': authenticated_user.email,
