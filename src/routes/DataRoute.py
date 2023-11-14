@@ -25,7 +25,7 @@ def all_data():
 
         return jsonify({
             'interests': {
-                'array': list(set([dicc['marker'] for dicc in interest_data])),
+                'array': [dicc['marker'] for dicc in interest_data],
                 'data': interest_data
             },
             'gender': gender_count,
