@@ -118,7 +118,7 @@ def search_user_by_phone(phone):
         if profile_id != None:
             return {
                 'profileId': profile_id,
-                'area_code': area_code
+                'areaCode': area_code
             }
         else:
             return jsonify({'message': "User not found"}), 500
