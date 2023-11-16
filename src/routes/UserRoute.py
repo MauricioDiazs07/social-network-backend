@@ -114,10 +114,11 @@ def update_password():
 @main.route('/phone/<phone>', methods = ['GET'])
 def search_user_by_phone(phone):
     try:
-        profile_id = UsersModel.get_id_by_phone(phone)
+        profile_id, area_code = UsersModel.get_id_by_phone(phone)
         if profile_id != None:
             return {
-                'profileId': profile_id[0]
+                'profileId': profile_id,
+                'area_code': area_code
             }
         else:
             return jsonify({'message': "User not found"}), 500
