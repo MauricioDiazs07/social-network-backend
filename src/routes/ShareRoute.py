@@ -109,10 +109,12 @@ def feed_home():
                 recuperado = list(dic for dic in history if dic['profileId'] == his['profileId'])
                 historys = []
                 for rec in recuperado:
+                    print(rec)
                     d = {
                         'type':  rec['multimedia']['archive_type'],
                         'content':  rec['multimedia']['archive_url'],
-                        'finish': 0
+                        'finish': 0,
+                        'id': rec['id']
                     }
                     historys.append(d)
 
@@ -122,7 +124,6 @@ def feed_home():
                     'name': recuperado[0]['name'],
                     'historys': historys,
                     'description': recuperado[0]['text'],
-                    'id': recuperado[0]['id']
                 }
                 data.append(perfil)
         return jsonify({
@@ -144,15 +145,17 @@ def create_share():
         profile_id = request.form['profile_id']
         description = request.form['description']
         share_type = request.form['share_type']
-        share_interest = request.form['interests'].split(";")
+        
         share = CreateShare(profile_id, share_type, description)
         share_id = ShareModel.create_share(share)
 
-        values = []
-        if len(share_interest) > 0:
-            for interest_value in share_interest:
-                values.append((share_id, interest_value))
-            InterestModel.add_share_interests(values)
+        if share_type != 'HISTORY':
+            share_interest = request.form['interests'].split(";")
+            values = []
+            if len(share_interest) > 0:
+                for interest_value in share_interest:
+                    values.append((share_id, interest_value))
+                InterestModel.add_share_interests(values)
        
         if len(request.files) > 0:
             for fileitem in request.files:
