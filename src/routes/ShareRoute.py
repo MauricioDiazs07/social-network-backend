@@ -109,7 +109,6 @@ def feed_home():
                 recuperado = list(dic for dic in history if dic['profileId'] == his['profileId'])
                 historys = []
                 for rec in recuperado:
-                    print(rec)
                     d = {
                         'type':  rec['multimedia']['archive_type'],
                         'content':  rec['multimedia']['archive_url'],
@@ -213,7 +212,6 @@ def list_share():
     try:
         profile_id = request.json['profile_id']
         shares = ShareModel.get_all_share()
-        print(shares)
         multimedias = MultimediaModel.get_all_multimedia()
         comments = InteractionModel.get_all_comments()
         likes = InteractionModel.get_all_likes()
