@@ -8,10 +8,11 @@ from src.models.entities.share import CreateShare
 from src.models.entities.multimedia import Multimedia
 from src.models.InterestModel import InterestModel
 from src.utils._support_functions import reformatCreatedDate
-import uuid
-from decouple import config
 from src.recommender.order_results import sort_by_distances
 from src.recommender.embedding.oneHot._simple import simpleOneHot
+from decouple import config
+import uuid
+import random
 
 
 main = Blueprint('share_blueprint', __name__)
@@ -26,6 +27,8 @@ def allowed_file(filename):
 def feed_home():
     try:
         profile_id = request.json['profile_id']
+        page_size = request.json['page_size']
+        post_history = request.json['post_history']
 
         profile_interest = InterestModel.get_interests(profile_id)
         interest = InterestModel.get_all()
@@ -47,10 +50,31 @@ def feed_home():
 
         post_final_oneHot = {}
         for share, interest_type in id_a_tipos.items():
-            post_final_oneHot[str(share)] = simpleOneHot(interest_list, [interest_type])[0]
+            if share not in post_history:
+                post_final_oneHot[str(share)] = simpleOneHot(interest_list, [interest_type])[0]
+        post_short = []
+        if len(post_final_oneHot) != 0:
+            post_short = sort_by_distances(user_embedding=user_onehot, posts_embeddings=post_final_oneHot)
+            print(post_short)
+        post_interest_short= [int(data['post']) for data in post_short if data['similarity'] > 0]
+        post_not_interest = [int(data['post']) for data in post_short if data['similarity'] == 0]
 
-        post_short = sort_by_distances(user_embedding=user_onehot, posts_embeddings=post_final_oneHot)
-        post_short_id = [int(_id['post']) for _id in post_short]
+        num_random = round(page_size/5)
+        num_post_interest = page_size - num_random;
+        post_list = post_interest_short[0:num_post_interest]
+        if len(post_list) != num_post_interest:
+            num_random = page_size - len(post_list)
+            if num_random >= len(post_not_interest):
+                num_random = len(post_not_interest)
+        post_random = random.sample(post_not_interest, num_random)
+
+        i_random = random.randint(0, len(post_list))
+        post_list[i_random:i_random] = post_random
+
+        print('post interest:', post_interest_short)
+        print('post not interest:', post_not_interest)
+        print('post not interest random:', post_random)
+        print('final post list: ',post_list)
 
         shares = ShareModel.get_all_share()
         multimedias = MultimediaModel.get_all_multimedia()
@@ -59,38 +83,39 @@ def feed_home():
         post = []
         history = []
         for share in shares:
-            if share['shareType'] == 'POST':
-                autoLike = False
-                post_multimedia = []
-                post_comment = []
-                post_like = []
-                post_interest = []
-                for interest in share_interests:
-                    if 'share_id' in interest and str(share['id']) == str(interest['share_id']):
-                        post_interest.append(interest['id'])
-                for multimedia in multimedias:
-                    if 'share_id' in multimedia and str(share['id']) == multimedia['share_id']:
-                        multimedia.pop('share_id')
-                        multimedia.pop('share_type')
-                        multimedia.pop('profile_id')
-                        post_multimedia.append(multimedia)
-                for comment in comments:
-                    if 'share_id' in comment and share['id'] == comment['share_id']:
-                        comment.pop('share_id')
-                        comment.pop('share_type')
-                        post_comment.append(comment)
-                for like in likes:
-                    if 'share_id' in like and share['id'] == like['share_id']:
-                        like.pop('share_id')
-                        like.pop('share_type')
-                        post_like.append(like)
-                        if like['profile_id'] == profile_id:
-                            autoLike = True
-                share['multimedia'] = {"count": len(post_multimedia), "data": post_multimedia}
-                share['comments'] = {"count": len(post_comment), "data": post_comment}
-                share['likes'] = {"count": len(post_like), "data": post_like, "like": autoLike}
-                share['interest'] = post_interest
-                post.append(share)
+            if share['id'] in post_list:
+                if share['shareType'] == 'POST':
+                    autoLike = False
+                    post_multimedia = []
+                    post_comment = []
+                    post_like = []
+                    post_interest = []
+                    for interest in share_interests:
+                        if 'share_id' in interest and str(share['id']) == str(interest['share_id']):
+                            post_interest.append(interest['id'])
+                    for multimedia in multimedias:
+                        if 'share_id' in multimedia and str(share['id']) == multimedia['share_id']:
+                            multimedia.pop('share_id')
+                            multimedia.pop('share_type')
+                            multimedia.pop('profile_id')
+                            post_multimedia.append(multimedia)
+                    for comment in comments:
+                        if 'share_id' in comment and share['id'] == comment['share_id']:
+                            comment.pop('share_id')
+                            comment.pop('share_type')
+                            post_comment.append(comment)
+                    for like in likes:
+                        if 'share_id' in like and share['id'] == like['share_id']:
+                            like.pop('share_id')
+                            like.pop('share_type')
+                            post_like.append(like)
+                            if like['profile_id'] == profile_id:
+                                autoLike = True
+                    share['multimedia'] = {"count": len(post_multimedia), "data": post_multimedia}
+                    share['comments'] = {"count": len(post_comment), "data": post_comment}
+                    share['likes'] = {"count": len(post_like), "data": post_like, "like": autoLike}
+                    share['interest'] = post_interest
+                    post.append(share)
             if share['shareType'] == 'HISTORY':
                 post_multimedia = []
                 for multimedia in multimedias:
@@ -126,7 +151,7 @@ def feed_home():
                 }
                 data.append(perfil)
         return jsonify({
-            'POST': sorted(post, key=lambda x: post_short_id.index(x['id'])),
+            'POST': sorted(post, key=lambda x: post_list.index(x['id'])),
             'HISTORY': data
         })
     except Exception as ex:
