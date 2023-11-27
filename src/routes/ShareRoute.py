@@ -78,11 +78,6 @@ def feed_interest():
             'post': post,
             'interest_id': interest_id
         })
-
-        
-        return jsonify({
-            'message': share_interest
-        })
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500
 
@@ -273,6 +268,7 @@ def update_share():
 @main.route('/get', methods = ['POST'])
 def get_share():
     try:
+        profile_id = request.json['profile_id']
         share_id = str(request.json['share_id'])
         share_type = request.json['share_type']
         share = ShareModel.get_share(share_id)
@@ -282,12 +278,14 @@ def get_share():
         comment = InteractionModel.get_comment(share_id)
         likes = InteractionModel.get_likes(share_id)
         interest = InterestModel.get_share_interests(share_id)
+        print(interest)
+        interest_list = [inter['interest_id'] for inter in interest]
         autolike = False
         for like in likes:
-            if like['profile_id'] == share['profileId']:
+            if like['profile_id'] == profile_id:
                 autolike = True
                 break
-        share['interest'] = interest
+        share['interest'] = interest_list
         share['multimedia'] = {"count": len(multimedia), "data": multimedia}
         share['comments'] = {"count": len(comment), "data": comment}
         share['likes'] = {"count": len(likes), "data": likes, "like": autolike}

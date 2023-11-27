@@ -7,7 +7,7 @@ ADD_INTEREST = """ INSERT INTO "T_USER_INTEREST" ("PROFILE_ID","INTEREST_ID") VA
 ADD_SHARE_INTEREST = """ INSERT INTO "T_SHARE_INTEREST" ("SHARE_ID","INTEREST_ID") VALUES """
 CLEAN_INTEREST = """ DELETE FROM "T_USER_INTEREST" WHERE "PROFILE_ID" = '{}' """
 GET_INTEREST = """ SELECT "INTEREST_ID", "DESCRIPTION" FROM "T_USER_INTEREST" INNER JOIN "T_CATALOGUE_INTEREST" ON "T_USER_INTEREST"."INTEREST_ID" = "T_CATALOGUE_INTEREST"."ID" WHERE "PROFILE_ID" = '{}' """
-GET_SHARE_INTEREST = """ SELECT * FROM "T_SHARE_INTEREST" """
+GET_SHARE_INTEREST = """ SELECT * FROM "T_SHARE_INTEREST" WHERE "SHARE_ID" = %s """
 GET_ALL_SHARE_INTEREST = """ SELECT * FROM "T_SHARE_INTEREST" """
 
 DELETE_SHARE_INTEREST = """ DELETE FROM "T_SHARE_INTEREST" WHERE "SHARE_ID"  = %s """
@@ -101,8 +101,11 @@ class InterestModel():
                 cur.execute(GET_SHARE_INTEREST, (share_id,))
                 resultset = cur.fetchall()
                 for row in resultset:
-                    interest = Interest(row[0],row[1])
-                    interest_list.append(interest.to_JSON())
+                    interest = {
+                        "share_id": row[0],
+                        "interest_id": row[1]
+                    }
+                    interest_list.append(interest)
             conn.close()
             return interest_list
         except Exception as ex:
