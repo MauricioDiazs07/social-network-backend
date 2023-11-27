@@ -9,7 +9,52 @@ DELETE_SHARE = """ delete from "T_SHARE" where "ID" = %s """
 UPDATE_SHARE = """ UPDATE "T_SHARE" SET "DESCRIPTION" = %s WHERE "ID" = %s """
 GET_SHARE_FROM_PROFILE = """ SELECT "T_SHARE"."ID","NAME","PROFILE_ID","T_PROFILE"."PROFILE_PHOTO","T_SHARE"."DESCRIPTION","SHARE_TYPE","T_SHARE"."CREATION_DATE" FROM "T_SHARE"  INNER JOIN "T_PROFILE" ON "T_SHARE"."PROFILE_ID" = "T_PROFILE"."ID" WHERE "T_PROFILE"."ID" = %s ORDER BY "T_SHARE"."CREATION_DATE" ASC;  """
 
+GET_SHARE_FROM_INTEREST = """ SELECT "SHARE_ID","NAME","PROFILE_ID","PROFILE_PHOTO","T_SHARE"."DESCRIPTION","SHARE_TYPE","T_SHARE"."CREATION_DATE" FROM "T_SHARE" 
+INNER JOIN "T_PROFILE" ON "T_SHARE"."PROFILE_ID" = "T_PROFILE"."ID"
+INNER JOIN "T_SHARE_INTEREST" ON "T_SHARE"."ID" = "T_SHARE_INTEREST"."SHARE_ID" 
+WHERE "INTEREST_ID" = %s AND "SHARE_TYPE" = 'POST' ORDER BY RANDOM() LIMIT %s"""
+
+GET_SHARE_FROM_INTEREST_FILTER = """ SELECT "SHARE_ID","NAME","PROFILE_ID","PROFILE_PHOTO","T_SHARE"."DESCRIPTION","SHARE_TYPE","T_SHARE"."CREATION_DATE" FROM "T_SHARE" 
+INNER JOIN "T_PROFILE" ON "T_SHARE"."PROFILE_ID" = "T_PROFILE"."ID"
+INNER JOIN "T_SHARE_INTEREST" ON "T_SHARE"."ID" = "T_SHARE_INTEREST"."SHARE_ID" 
+WHERE "INTEREST_ID" = %s AND "SHARE_TYPE" = 'POST' AND "SHARE_ID" NOT IN %s ORDER BY RANDOM() LIMIT %s"""
+
+
 class ShareModel():
+
+    @classmethod
+    def get_share_from_interest(self,interest_id, page_size):
+        try:
+            conn = get_connection()
+            shares = []
+            with conn.cursor() as cur:
+                cur.execute(GET_SHARE_FROM_INTEREST,(interest_id,page_size))
+                resultset = cur.fetchall()
+                for row in resultset:
+                    share = Share(row[0],row[1],row[2],row[3],row[4],row[5],row[6])
+                    shares.append(share.to_JSON())
+                conn.commit()
+            conn.close()
+            return shares
+        except Exception as ex:
+            raise Exception(ex)
+        
+    @classmethod
+    def get_share_from_interest_filter(self,interest_id, post_history, page_size):
+        try:
+            conn = get_connection()
+            shares = []
+            with conn.cursor() as cur:
+                cur.execute(GET_SHARE_FROM_INTEREST_FILTER,(interest_id,tuple(post_history),page_size))
+                resultset = cur.fetchall()
+                for row in resultset:
+                    share = Share(row[0],row[1],row[2],row[3],row[4],row[5],row[6])
+                    shares.append(share.to_JSON())
+                conn.commit()
+            conn.close()
+            return shares
+        except Exception as ex:
+            raise Exception(ex)
 
     @classmethod
     def create_share(self, share):

@@ -16,6 +16,20 @@ GET_ALL_LIKES = """ SELECT "T_INTERACTION_LIKE"."PROFILE_ID", "NAME", "PROFILE_P
 REMOVE_LIKE = """ DELETE FROM "T_INTERACTION_LIKE" WHERE "PROFILE_ID" = %s AND "SHARE_ID" = %s AND "SHARE_TYPE" = %s """
 DELETE_ALL_LIKES = """ DELETE FROM "T_INTERACTION_LIKE" WHERE "SHARE_ID" = %s """
 
+GET_ALL_LIKES_FILTER = """ 
+SELECT "T_INTERACTION_LIKE"."PROFILE_ID", "NAME", "PROFILE_PHOTO", "SHARE_ID", "SHARE_TYPE" 
+FROM "T_INTERACTION_LIKE" 
+INNER JOIN "T_PROFILE" ON "T_INTERACTION_LIKE"."PROFILE_ID" = "T_PROFILE"."ID" 
+WHERE "SHARE_ID" IN %s
+"""
+READ_ALL_COMMENTS_FILTER = """ 
+SELECT "T_INTERACTION_COMMENT"."ID","NAME","PROFILE_ID","T_PROFILE"."PROFILE_PHOTO","T_INTERACTION_COMMENT"."TEXT","SHARE_ID","SHARE_TYPE","T_INTERACTION_COMMENT"."CREATION_DATE"  
+FROM "T_INTERACTION_COMMENT"  
+INNER JOIN "T_PROFILE" ON "T_INTERACTION_COMMENT"."PROFILE_ID" = "T_PROFILE"."ID"
+WHERE "SHARE_ID" IN %s
+ORDER BY "T_INTERACTION_COMMENT"."CREATION_DATE" ASC """
+
+
 class InteractionModel():
 
     @classmethod
@@ -90,6 +104,22 @@ class InteractionModel():
             comments = []
             with conn.cursor() as cur:
                 cur.execute(READ_ALL_COMMENTS)
+                resultset = cur.fetchall()
+                for row in resultset:
+                    comment = ReadComment(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7])
+                    comments.append(comment.to_JSON())
+            conn.close()
+            return comments
+        except Exception as ex:
+            raise Exception(ex)
+        
+    @classmethod
+    def get_all_comments_filter(self, post):
+        try:
+            conn = get_connection()
+            comments = []
+            with conn.cursor() as cur:
+                cur.execute(READ_ALL_COMMENTS, (tuple(post),))
                 resultset = cur.fetchall()
                 for row in resultset:
                     comment = ReadComment(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7])
@@ -180,6 +210,22 @@ class InteractionModel():
             likes = []
             with conn.cursor() as cur:
                 cur.execute(GET_ALL_LIKES)
+                resultset = cur.fetchall()
+                for row in resultset:
+                    like = ReadLike(row[0],row[1],row[2],row[3],row[4])
+                    likes.append(like.to_JSON())
+            conn.close()
+            return likes
+        except Exception as ex:
+            raise Exception(ex)
+        
+    @classmethod
+    def get_all_likes_filter(self,post):
+        try:
+            conn = get_connection()
+            likes = []
+            with conn.cursor() as cur:
+                cur.execute(GET_ALL_LIKES, (tuple(post),))
                 resultset = cur.fetchall()
                 for row in resultset:
                     like = ReadLike(row[0],row[1],row[2],row[3],row[4])
