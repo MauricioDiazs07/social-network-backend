@@ -1,11 +1,24 @@
+import uuid
+from decouple import config
 from flask import Blueprint, jsonify, request
 from src.models.ShareModel import ShareModel
 from src.models.MasterModel import MasterModel
 from src.models.MultimediaModel import MultimediaModel
 from src.models.InteractionModel import InteractionModel
+from src.models.entities.multimedia import Multimedia
+from src.models.MultimediaModel import MultimediaModel
 from src.utils._support_functions import reformatCreatedDate
+from src.utils.AmazonS3 import \
+                            upload_file_to_s3, \
+                            delete_file_from_s3
 
 main = Blueprint('masters_blueprint', __name__)
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+def allowed_file(filename):
+    return '.' in filename and \
+        filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @main.route('/',  methods=['PUT'])
 def update_master_data():
@@ -13,10 +26,32 @@ def update_master_data():
         profile_id = request.form['profile_id']
         name = request.form['name']
         email = request.form['email']
-        profile_photo = request.form['profile_photo']
-        
+        description = request.form['description']
+        if 'profile_photo' in request.files:
+            file = request.files['profile_photo']
+            if file and allowed_file(file.filename):
+                multimedia = MultimediaModel.get_multimedia(profile_id, 'PROFILE')
+                if len(multimedia) != 0:
+                    for archive in multimedia:
+                        file_name = archive['archive_url'].split("/")[-1]
+                        delete_file_from_s3(file_name)
+                    MultimediaModel.delete_multimedia(profile_id, 'PROFILE')
+                new_name = uuid.uuid4().hex + '.' + file.filename.rsplit('.',1)[1].lower()
+                upload_file_to_s3(file,new_name)
+                profile_photo = 'https://{}.s3.{}.amazonaws.com/{}'.format(config('AWS_BUCKET_NAME'),config('REGION_NAME'),new_name)
+                multimedia = Multimedia(profile_id,profile_id, 'PROFILE', profile_photo, profile_photo.rsplit('.',1)[1].lower())
+                MultimediaModel.create_multimedia(multimedia)
 
-        return jsonify({'message': 'ok'})
+                MasterModel.update_photo(profile_id,name,email,description,profile_photo)
+                return jsonify({
+                    'message': 'OK',
+                    'profile_photo': profile_photo
+                })
+        else:
+            MasterModel.update(profile_id,name,email,description)
+            return jsonify({
+                'message': 'OK'
+            })
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500
 
