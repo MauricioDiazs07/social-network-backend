@@ -11,6 +11,7 @@ GET_SHARE_INTEREST = """ SELECT * FROM "T_SHARE_INTEREST" """
 GET_ALL_SHARE_INTEREST = """ SELECT * FROM "T_SHARE_INTEREST" """
 
 DELETE_SHARE_INTEREST = """ DELETE FROM "T_SHARE_INTEREST" WHERE "SHARE_ID"  = %s """
+GET_ALL_SHARE_INTEREST_FILTER = """ SELECT * FROM "T_SHARE_INTEREST" WHERE "SHARE_ID" IN %s """
 
 class InterestModel():
 
@@ -114,6 +115,21 @@ class InterestModel():
             interest_list = []
             with conn.cursor() as cur:
                 cur.execute(GET_ALL_SHARE_INTEREST)
+                resultset = cur.fetchall()
+                for row in resultset:
+                    interest_list.append({"share_id":row[0], "id": row[1]})
+            conn.close()
+            return interest_list
+        except Exception as ex:
+            raise Exception(ex)
+    
+    @classmethod
+    def get_all_share_interests_filter(self, post):
+        try:
+            conn = get_connection()
+            interest_list = []
+            with conn.cursor() as cur:
+                cur.execute(GET_ALL_SHARE_INTEREST_FILTER, (tuple(post),))
                 resultset = cur.fetchall()
                 for row in resultset:
                     interest_list.append({"share_id":row[0], "id": row[1]})
