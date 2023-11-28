@@ -1,7 +1,11 @@
 import uuid
+import bcrypt
 import hashlib
 from flask import Blueprint, jsonify, request
+from src.models.MasterModel import MasterModel
 from src.models.entities.auth import Login, SignUp
+from src.models.entities.profile.MasterProfile import MasterProfile
+from src.models.entities.profile.AdminProfile import AdminProfile
 from src.models.AuthModel import AuthModel
 from src.utils.Security import Security
 from src.models.entities.multimedia import Multimedia
@@ -22,6 +26,16 @@ def allowed_file(filename):
     return '.' in filename and \
         filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def hash_password(password):
+    # Generar un salt aleatorio y hashear la contraseña con el salt
+    salt = bcrypt.gensalt()
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
+    return hashed_password.decode('utf-8')
+
+def verify_password(password, hash_password):
+    # Verifica si la contraseña en texto plano coincide con la contraseña encriptada
+    return bcrypt.checkpw(password.encode('utf-8'), hash_password.encode('utf-8'))
+
 @main.route('/verified', methods = ['POST'])
 def verified_accound():
     profile_id = request.json['profile_id']
@@ -40,13 +54,18 @@ def verified_accound():
 def login():
     phone = request.json['phoneNumber']
     pre_password = request.json['password']
-    password = hashlib.shake_256(pre_password.encode('utf-8')).hexdigest(16)
+    password = hash_password(pre_password)
     login = Login(phone, password)
     authenticated_user = AuthModel.login(login)
-    if (authenticated_user != None):
+    if authenticated_user != None and verify_password(pre_password, authenticated_user.password):
+        print(authenticated_user.role_id)
+        if authenticated_user.role_id[0] == 2:
+            authenticated_user = MasterModel.get_login_info(authenticated_user.id)
+            authenticated_user.role_id = [2]
+            print(authenticated_user)
         encoded_token = Security.generate_token(authenticated_user)
         verified_phone = None
-        if authenticated_user.role_id == 1:
+        if authenticated_user.role_id[0] == 1:
             verified_phone = AuthModel.check_verified(authenticated_user.id)
         return jsonify({
             'profile_id': authenticated_user.id,
@@ -59,13 +78,14 @@ def login():
         response = jsonify({'message': 'No registrado'})
         return response, 401
     
+    
 @main.route('/signup', methods = ['POST'])
 def sign_up():
     try:
         phone = request.form['phone']
         area_code = request.form['area_code']
         pre_password = request.form['password']
-        password = hashlib.shake_256(pre_password.encode('utf-8')).hexdigest(16)
+        password = hash_password(pre_password)
         name = request.form['name']
         gender = request.form['gender']
         state_id = request.form['state']
@@ -105,7 +125,8 @@ def sign_up():
         if affected_row == 1:
             return jsonify({
                 'message': 'OK',
-                'user': email
+                'user': email,
+                'profile_id': profile_id
             })
         else:
             response = jsonify({'message': 'Error al registrarse'})
@@ -115,4 +136,59 @@ def sign_up():
         MultimediaModel.delete_multimedia(profile_id,'IDENTIFICATION')
         if profile_id != None:
             MultimediaModel.delete_multimedia(profile_id,'PROFILE')
+        return jsonify({'message': str(ex)}), 500
+    
+
+@main.route('/master', methods = ['POST'])
+def create_master():
+    try:
+        phone_number = request.json['phone_number']
+        area_code = request.json['area_code']
+        pre_password = request.json['password']
+        password = hash_password(pre_password)
+        gender = request.json['gender']
+        name = request.json['name']
+        description = request.json['description']
+        email = request.json['email']
+
+        id = hashlib.shake_256(phone_number.encode('utf-8')).hexdigest(16)
+
+        master = MasterProfile(id,phone_number, area_code,password,gender,name,description,email)
+        affected_row = AuthModel.create_master(master)
+        if affected_row == 1:
+            return jsonify({
+                'phone_number': phone_number,
+                'id': id
+            })
+        else:
+            response = jsonify({'message': 'Error al registrarse'})
+            return response, 500
+        
+    except Exception as ex:
+        return jsonify({'message': str(ex)}), 500
+    
+
+@main.route('/admin', methods = ['POST'])
+def create_admin():
+    try:
+        phone_number = request.json['phone_number']
+        area_code = request.json['area_code']
+        pre_password = request.json['password']
+        password = hash_password(pre_password)
+        master_id = request.json['master_id']
+
+        id = hashlib.shake_256(phone_number.encode('utf-8')).hexdigest(16)
+
+        master = AdminProfile(id,phone_number,area_code,password,master_id)
+        affected_row = AuthModel.create_admin(master)
+        if affected_row == 1:
+            return jsonify({
+                'phone_number': phone_number,
+                'id': id
+            })
+        else:
+            response = jsonify({'message': 'Error al registrarse'})
+            return response, 500
+        
+    except Exception as ex:
         return jsonify({'message': str(ex)}), 500

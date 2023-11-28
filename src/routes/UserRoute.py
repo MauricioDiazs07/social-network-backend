@@ -1,3 +1,4 @@
+import bcrypt
 from flask import Blueprint, jsonify, request
 from src.models.UserModel import UsersModel
 from src.models.entities.multimedia import Multimedia
@@ -16,6 +17,12 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 def allowed_file(filename):
     return '.' in filename and \
         filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def hash_password(password):
+    # Generar un salt aleatorio y hashear la contraseña con el salt
+    salt = bcrypt.gensalt()
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
+    return hashed_password.decode('utf-8')
 
 @main.route('/update',  methods = ['PATCH'])
 def update_users_data():
@@ -80,8 +87,10 @@ def delete_user_data(profile_id):
 @main.route('/phone/<phone>', methods = ['DELETE'])
 def delete_user_data_by_phone(phone):
     try:
-        profile_id = UsersModel.get_id_by_phone(phone)
+        print(1)
+        profile_id, area_code = UsersModel.get_id_by_phone(phone)
         multimedia = MultimediaModel.get_all_multimedia_from_profile(profile_id)
+        print(3)
         for archive in multimedia:
             file = archive['archive_url'].split("/")[-1]
             delete_file_from_s3(file)
@@ -99,7 +108,7 @@ def update_password():
     try:
         profileId = request.json['profileId']
         pre_password = request.json['password']
-        password = hashlib.shake_256(pre_password.encode('utf-8')).hexdigest(16)
+        password = hash_password(pre_password)
         affected_row = UsersModel.update_password(password,profileId)
         if affected_row == 1:
             return {
