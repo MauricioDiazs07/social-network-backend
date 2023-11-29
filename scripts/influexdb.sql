@@ -206,10 +206,17 @@ CREATE TABLE "T_MULTIMEDIA" (
  );
 
 
+/* 
+-------------------------------------------------------------------------------
+    CHAT: 
+    Tablas que guardan los chats entre los diferentes perfiles
+-------------------------------------------------------------------------------
+ */
 
  CREATE TABLE "T_CHAT" (
     "ID" BIGSERIAL PRIMARY KEY,
     "SENDER_ID" VARCHAR(255) NOT NULL,
     "RECEIVER_ID" VARCHAR(255) NOT NULL,
-    "TEXT" VARCHAR(255) NOT NULL
- )
+    "TEXT" VARCHAR(255) NOT NULL,
+    "CREATION_DATE" timestamp NOT NULL DEFAULT (CURRENT_TIMESTAMP)
+ );
