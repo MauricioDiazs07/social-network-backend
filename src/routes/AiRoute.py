@@ -82,6 +82,8 @@ def createPost():
 def googleOCR():
     vision_client = vision.ImageAnnotatorClient()
     curp = ''
+    cumple = ''
+    cp = 0
 
     content = request.files['ine'].read()
     image = vision.Image(content=content)
@@ -137,7 +139,7 @@ def googleOCR():
 
     out['name'] = " ".join(clean[clean.index('NOMBRE') + 1:clean.index('DOMICILIO')])
     out['curp'] = curp
-    out['gender'] = curp[10]
+    out['gender'] = curp[10] if curp != '' else ''
     out['birthday'] = cumple
     out['address'] = " ".join(clean[clean.index('DOMICILIO') + 1: cp + 1])
     
