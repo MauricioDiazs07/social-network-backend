@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from src.models.ChatModel import ChatModel
 from src.models.entities.chat.Chat import Chat
+from src.models.ProfileModel import ProfileModel
 
 main = Blueprint('chat_blueprint', __name__)
 
@@ -46,31 +47,40 @@ def show_chats():
         chats = ChatModel.show_chats(sender_id)
 
         persons = []
-        message= []
-        send = []
+
+        active_chats = []
         for chat in chats:
-            print(chat)
             if chat['sender_id'] != sender_id:
                 if chat['sender_id'] not in persons:
+                    data = {
+                        'name': chat['name'],
+                        'receiver_id': chat['sender_id'],
+                        'message': chat['message'],
+                        'time': chat['time'],
+                        'imageUrl': chat['imageUrl'],
+                        'pending': 0,
+                        'send': False
+                    }
+                    active_chats.append(data)
                     persons.append(chat['sender_id'])
-                    message.append(chat['message'])
-                    send.append(False)
             else:
                 if chat['receiver_id'] not in persons:
+                    data = ProfileModel.get_profile_data(chat['receiver_id'])
+                    print('data', data)
+                    data = {
+                        'name': data['name'],
+                        'receiver_id': chat['receiver_id'],
+                        'message': chat['message'],
+                        'time': chat['time'],
+                        'imageUrl': data['profile_photo'],
+                        'pending': 0,
+                        'send': True
+                    }
+                    active_chats.append(data)
                     persons.append(chat['receiver_id'])
-                    message.append(chat['message'])
-                    send.append(True)
-
-        show_chats = []
-        for i, person in enumerate(persons):
-            for chat in chats:
-                if person == chat['sender_id']:
-                    chat['message'] = message[i]
-                    chat['send'] = send[i]
-                    show_chats.append(chat)
-                    break
+            
         return jsonify({
-            "active_chats": show_chats
+            "active_chats": active_chats
         })
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500
