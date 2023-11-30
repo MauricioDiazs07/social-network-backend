@@ -36,7 +36,7 @@ class ChatModel:
                 cur.execute( LIST_CHAT, (sender_id,receiver_id,receiver_id,sender_id))
                 resultset = cur.fetchall()
                 for row in resultset:
-                    chat = InfoChat(row[0],row[1],row[2],row[3],row[4]).to_JSON()
+                    chat = InfoChat(row[0],row[1],row[2],row[3],row[4], sender_id).to_JSON()
                     chats.append(chat)
             conn.close()
             return chats

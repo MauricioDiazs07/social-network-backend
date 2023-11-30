@@ -25,7 +25,7 @@ def send_message():
         return jsonify({'message': str(ex)}), 500
 
 
-@main.route('/', methods = ['GET'])
+@main.route('/', methods = ['POST'])
 def list_messages():
     try:
         sender_id = request.json['sender_id']
