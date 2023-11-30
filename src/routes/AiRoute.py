@@ -81,6 +81,7 @@ def createPost():
 @main.route('/ine2', methods=['POST'])
 def googleOCR():
     vision_client = vision.ImageAnnotatorClient()
+    curp = ''
 
     content = request.files['ine'].read()
     image = vision.Image(content=content)
