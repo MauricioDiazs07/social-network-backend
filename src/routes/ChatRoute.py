@@ -37,3 +37,40 @@ def list_messages():
         })
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500
+    
+
+@main.route('/show', methods = ['POST'])
+def show_chats():
+    try:
+        sender_id = request.json['sender_id']
+        chats = ChatModel.show_chats(sender_id)
+
+        persons = []
+        message= []
+        send = []
+        for chat in chats:
+            print(chat)
+            if chat['sender_id'] != sender_id:
+                if chat['sender_id'] not in persons:
+                    persons.append(chat['sender_id'])
+                    message.append(chat['message'])
+                    send.append(False)
+            else:
+                if chat['receiver_id'] not in persons:
+                    persons.append(chat['receiver_id'])
+                    message.append(chat['message'])
+                    send.append(True)
+
+        show_chats = []
+        for i, person in enumerate(persons):
+            for chat in chats:
+                if person == chat['sender_id']:
+                    chat['message'] = message[i]
+                    chat['send'] = send[i]
+                    show_chats.append(chat)
+                    break
+        return jsonify({
+            "active_chats": show_chats
+        })
+    except Exception as ex:
+        return jsonify({'message': str(ex)}), 500
