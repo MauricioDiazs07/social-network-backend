@@ -80,3 +80,16 @@ def list_admins():
         
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500
+    
+
+@main.route('/admin/', methods = ['DELETE'])
+def delete_admin():
+    try:
+        admin_id = request.json['admin_id']
+        AdminModel.delete_admin(admin_id)
+        return jsonify({
+            'message': 'ok'
+        })
+        
+    except Exception as ex:
+        return jsonify({'message': str(ex)}), 500

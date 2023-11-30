@@ -10,6 +10,9 @@ FROM "T_MASTER"
 INNER JOIN "T_PROFILE" ON "ADMIN_ID" = "T_PROFILE"."ID"
 WHERE "MASTER_ID" = %s; """
 
+DELETE_ADMIN = """ DELETE FROM "T_PROFILE" WHERE "ID" = %s """
+DELETE_ADMIN_MASTER = """ DELETE FROM "T_MASTER" WHERE "ADMIN_ID" = %s  """
+
 class AdminModel:
 
     @classmethod
@@ -52,5 +55,19 @@ class AdminModel:
                     admins.append(admin)
             conn.close()
             return admins
+        except Exception as ex:
+            raise Exception(ex)
+        
+    @classmethod
+    def delete_admin(self, admin_id):
+        try:
+            conn = get_connection()
+            with conn.cursor() as cur:
+                cur.execute( DELETE_ADMIN, (admin_id,))
+                cur.execute( DELETE_ADMIN_MASTER, (admin_id,))
+                affected_row = cur.rowcount
+                conn.commit()
+            conn.close()
+            return affected_row
         except Exception as ex:
             raise Exception(ex)
