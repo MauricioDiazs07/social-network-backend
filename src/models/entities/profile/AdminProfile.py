@@ -1,12 +1,12 @@
 class AdminProfile():
 
-    def __init__(self, id, phone_number, area_code,password, master_id) -> None:
+    def __init__(self, id,name, phone_number, area_code,password, master_id) -> None:
         self.id = id
         self.phone_number = phone_number
         self.area_code = area_code
         self.password = password
         self.gender = 'N'
-        self.name = 'ADMIN'
+        self.name = name
         self.description = None
         self.email = None
         self.role_id = 2

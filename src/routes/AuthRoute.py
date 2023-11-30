@@ -171,6 +171,7 @@ def create_master():
 @main.route('/admin', methods = ['POST'])
 def create_admin():
     try:
+        name = request.json['name']
         phone_number = request.json['phone_number']
         area_code = request.json['area_code']
         pre_password = request.json['password']
@@ -179,10 +180,11 @@ def create_admin():
 
         id = hashlib.shake_256(phone_number.encode('utf-8')).hexdigest(16)
 
-        master = AdminProfile(id,phone_number,area_code,password,master_id)
+        master = AdminProfile(id,name,phone_number,area_code,password,master_id)
         affected_row = AuthModel.create_admin(master)
         if affected_row == 1:
             return jsonify({
+                'name': name,
                 'phone_number': phone_number,
                 'id': id
             })

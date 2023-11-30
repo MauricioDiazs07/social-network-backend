@@ -47,7 +47,6 @@ def show_chats():
         chats = ChatModel.show_chats(sender_id)
 
         persons = []
-
         active_chats = []
         for chat in chats:
             if chat['sender_id'] != sender_id:
